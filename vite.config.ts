@@ -4,8 +4,11 @@ import { fileURLToPath, URL } from 'node:url'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  // Base path for GitHub Pages deployment (update if your repo name differs)
-  base: process.env.GITHUB_PAGES === 'true' ? '/htk-tennis-v2/' : '/',
+  // Base path for GitHub Pages deployment
+  // Can be overridden with GITHUB_REPOSITORY_NAME env var
+  base: process.env.GITHUB_PAGES === 'true' 
+    ? `/${process.env.GITHUB_REPOSITORY_NAME || 'htk-tennis-v2'}/` 
+    : '/',
   plugins: [vue()],
   resolve: {
     alias: {
