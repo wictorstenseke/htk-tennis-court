@@ -49,7 +49,7 @@ Enable the following settings:
   - Ensures even admins follow the same rules
 
 - **✅ Allow force pushes** → ❌ **DISABLED**
-  - Prevents rewriting history on main branch
+  - Prevents rewriting history on main branches
 
 - **✅ Allow deletions** → ❌ **DISABLED**
   - Prevents accidental deletion of main branch
