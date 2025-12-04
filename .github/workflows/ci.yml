@@ -82,14 +82,17 @@ jobs:
         run: npm run build
 
       - name: Check build size
+        id: build-size
         run: |
           BUILD_SIZE=$(du -sh dist | cut -f1)
           echo "Build size: $BUILD_SIZE"
-          echo "BUILD_SIZE=$BUILD_SIZE" >> $GITHUB_ENV
+          echo "size=$BUILD_SIZE" >> $GITHUB_OUTPUT
 
       - name: Comment PR with build size
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
+        env:
+          BUILD_SIZE: ${{ steps.build-size.outputs.size }}
         with:
           script: |
             const size = process.env.BUILD_SIZE;
