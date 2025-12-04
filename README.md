@@ -102,6 +102,43 @@ src/
 - ✅ Firestore initialized with region `europe-west1`
 - ✅ Firestore rules deployed
 
+## CI/CD Pipeline
+
+This project uses GitHub Actions for continuous integration and deployment.
+
+### Continuous Integration (CI)
+
+The CI pipeline runs automatically on:
+- Pull requests targeting `main`
+- Pushes to `main`
+
+**Quality Checks:**
+- ✅ ESLint code linting
+- ✅ TypeScript type checking
+- ✅ Unit tests with Vitest
+- ✅ Production build verification
+- ✅ Build size monitoring (on PRs)
+
+### Continuous Deployment (CD)
+
+- **GitHub Pages**: Automatically deploys to GitHub Pages when changes are merged to `main`
+- **Live Preview**: Test versions are available at: `https://[your-username].github.io/htk-tennis-v2/`
+
+### Branch Protection
+
+The `main` branch is protected to ensure code quality:
+- ❌ Direct pushes are blocked
+- ✅ All changes must go through pull requests
+- ✅ CI checks must pass before merging
+- ✅ PR approval required
+
+**Setup Instructions:** See [`.github/BRANCH_PROTECTION.md`](.github/BRANCH_PROTECTION.md) for detailed branch protection configuration.
+
+### Workflow Files
+
+- `.github/workflows/ci.yml` - Quality assurance checks
+- `.github/workflows/deploy.yml` - GitHub Pages deployment
+
 ## License
 
 MIT
