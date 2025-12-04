@@ -1,0 +1,72 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users collection: users can only read/write their own profile
+    match /users/{userId} {
+      // Users can read their own profile
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // Users can create their own profile (on first sign-in)
+      // Note: createdAt uses serverTimestamp() which is validated server-side
+      allow create: if request.auth != null 
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasAll(['displayName', 'email', 'createdAt'])
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() > 0
+        && request.resource.data.email is string
+        && request.resource.data.email == request.auth.token.email
+        && (!('phone' in request.resource.data) || request.resource.data.phone is string);
+      
+      // Users can update their own profile (only displayName and phone)
+      allow update: if request.auth != null 
+        && request.auth.uid == userId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'phone'])
+        && (!('displayName' in request.resource.data.diff(resource.data).affectedKeys()) 
+            || (request.resource.data.displayName is string && request.resource.data.displayName.size() > 0))
+        && (!('phone' in request.resource.data.diff(resource.data).affectedKeys()) 
+            || request.resource.data.phone is string);
+    }
+    
+    // Bookings collection: public read, restricted write
+    match /bookings/{bookingId} {
+      // Everyone can read bookings (for the public schedule)
+      allow read: if true;
+      
+      // Create: the authenticated user must match userId in the new document
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.keys().hasAll(['userId', 'startTime', 'endTime', 'status', 'createdAt'])
+                    && request.resource.data.userId is string
+                    && request.resource.data.startTime is timestamp
+                    && request.resource.data.endTime is timestamp
+                    && request.resource.data.status is string
+                    && request.resource.data.status in ['booked', 'cancelled']
+                    && (!('opponentUserId' in request.resource.data) || request.resource.data.opponentUserId is string);
+      
+      // Update: only involved players may change/cancel
+      // Only allow updating status and opponentUserId
+      allow update: if request.auth != null
+                    && (
+                      resource.data.userId == request.auth.uid ||
+                      resource.data.opponentUserId == request.auth.uid
+                    )
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'opponentUserId'])
+                    && (!('status' in request.resource.data.diff(resource.data).affectedKeys())
+                        || request.resource.data.status in ['booked', 'cancelled'])
+                    && (!('opponentUserId' in request.resource.data.diff(resource.data).affectedKeys())
+                        || request.resource.data.opponentUserId is string);
+      
+      // Delete: only involved players may delete
+      allow delete: if request.auth != null
+                    && (
+                      resource.data.userId == request.auth.uid ||
+                      resource.data.opponentUserId == request.auth.uid
+                    );
+    }
+    
+    // Default rule: deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
