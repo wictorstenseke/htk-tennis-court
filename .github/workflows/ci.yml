@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - main
+      - dev
     paths-ignore:
       - '**.md'
       - '.gitignore'
@@ -16,27 +17,21 @@ on:
 permissions:
   contents: read
   pull-requests: write
-  pages: write
-  id-token: write
 
 jobs:
-  quality-assurance:
-    name: Quality Assurance
+  test:
+    name: Test
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: '20.x'
           cache: 'npm'
 
       - name: Install dependencies
@@ -54,6 +49,25 @@ jobs:
         run: npm run test:coverage
         continue-on-error: false
 
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Build project
         run: npm run build
         continue-on-error: false
@@ -64,164 +78,4 @@ jobs:
           VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        if: matrix.node-version == '20.x'
-        with:
-          name: dist
-          path: dist/
-          retention-days: 1
-
-  build-size-check:
-    name: Build Size Check
-    runs-on: ubuntu-latest
-    needs: quality-assurance
-    if: github.event_name == 'pull_request'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build project
-        run: npm run build
-        env:
-          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
-
-      - name: Check build size
-        id: build-size
-        run: |
-          BUILD_SIZE=$(du -sh dist | cut -f1)
-          echo "Build size: $BUILD_SIZE"
-          echo "size=$BUILD_SIZE" >> $GITHUB_OUTPUT
-
-      - name: Comment PR with build size
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        env:
-          BUILD_SIZE: ${{ steps.build-size.outputs.size }}
-        with:
-          script: |
-            const size = process.env.BUILD_SIZE || 'unknown';
-            const commentBody = `📦 Build size: **${size}**`;
-            
-            // Find existing comment from this bot
-            const comments = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-            
-            const existingComment = comments.data.find(
-              comment => comment.user.type === 'Bot' && comment.body.includes('📦 Build size')
-            );
-            
-            if (existingComment) {
-              // Update existing comment
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existingComment.id,
-                body: commentBody,
-              });
-            } else {
-              // Create new comment
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: commentBody,
-              });
-            }
-
-  deploy:
-    name: Deploy to GitHub Pages
-    runs-on: ubuntu-latest
-    needs: quality-assurance
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    concurrency:
-      group: 'pages'
-      cancel-in-progress: false
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build project for GitHub Pages
-        run: |
-          echo "Repository name: ${{ github.event.repository.name }}"
-          echo "Building with base path: /${{ github.event.repository.name }}/"
-          npm run build
-        env:
-          NODE_ENV: production
-          GITHUB_PAGES: 'true'
-          GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
-          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
-
-      - name: Verify build output
-        run: |
-          if [ ! -f "dist/index.html" ]; then
-            echo "❌ Error: dist/index.html not found"
-            exit 1
-          fi
-          if [ ! -f "dist/.nojekyll" ]; then
-            echo "⚠️  Warning: dist/.nojekyll not found - creating it now"
-            touch dist/.nojekyll
-          else
-            echo "✅ .nojekyll file found"
-          fi
-          # Verify base path is correct in HTML
-          REPO_NAME="${{ github.event.repository.name }}"
-          if grep -q "/${REPO_NAME}/" dist/index.html; then
-            echo "✅ Base path correctly set to /${REPO_NAME}/"
-          else
-            echo "❌ Error: Base path /${REPO_NAME}/ not found in dist/index.html"
-            echo "HTML content:"
-            cat dist/index.html
-            exit 1
-          fi
-          echo "✅ Build output verified"
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: './dist'
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
 
