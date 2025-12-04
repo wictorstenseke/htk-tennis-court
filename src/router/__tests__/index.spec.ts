@@ -9,7 +9,8 @@ describe('router', () => {
     expect(routes[0].path).toBe('/')
     expect(routes[0].name).toBe('home')
     expect(routes[1].path).toBe('/auth')
-    expect(routes[1].name).toBe('auth')
+    // /auth is now a redirect route, so it doesn't have a name
+    expect(routes[1].redirect).toBe('/')
     expect(routes[2].path).toBe('/bookings')
     expect(routes[2].name).toBe('bookings')
     expect(routes[2].meta?.requiresAuth).toBe(true)

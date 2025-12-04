@@ -20,11 +20,7 @@
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-3xl font-bold">Bokningar</h2>
           <div class="flex gap-2">
-            <button
-              v-if="isAuthenticated"
-              class="btn btn-outline"
-              @click="createMockBookings"
-            >
+            <button v-if="isAuthenticated" class="btn btn-outline" @click="createMockBookings">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-5 w-5 mr-2"
@@ -101,7 +97,10 @@
               </span>
             </div>
             <!-- More menu - only show for user's own bookings when authenticated -->
-            <div v-if="isAuthenticated && isMyBooking(booking)" class="dropdown dropdown-end flex items-center">
+            <div
+              v-if="isAuthenticated && isMyBooking(booking)"
+              class="dropdown dropdown-end flex items-center"
+            >
               <div tabindex="0" role="button" class="btn btn-ghost btn-xs btn-circle">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

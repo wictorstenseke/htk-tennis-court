@@ -248,7 +248,7 @@ async function handleSubmit() {
 
     // Clear form fields after successful submission
     resetForm()
-    
+
     // Emit success event and close modal
     emit('success')
     handleClose()
