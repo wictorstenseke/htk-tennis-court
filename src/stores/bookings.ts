@@ -64,9 +64,12 @@ export const useBookingsStore = defineStore('bookings', () => {
 
       bookings.value = await getAllBookings(constraints)
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to load bookings'
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load bookings'
+      error.value = errorMessage
       console.error('Error loading bookings:', err)
-      throw err
+      // Don't throw - allow component to handle gracefully
+      // This way mock bookings can still be shown even if Firestore fails
+      bookings.value = []
     } finally {
       isLoading.value = false
     }
