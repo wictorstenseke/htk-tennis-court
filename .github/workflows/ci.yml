@@ -138,6 +138,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: quality-assurance
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    concurrency:
+      group: 'pages'
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -158,7 +161,21 @@ jobs:
       - name: Build project for GitHub Pages
         run: npm run build
         env:
+          NODE_ENV: production
           GITHUB_PAGES: 'true'
+
+      - name: Verify build output
+        run: |
+          if [ ! -f "dist/index.html" ]; then
+            echo "❌ Error: dist/index.html not found"
+            exit 1
+          fi
+          if [ ! -f "dist/.nojekyll" ]; then
+            echo "⚠️  Warning: dist/.nojekyll not found - GitHub Pages may process files with Jekyll"
+          else
+            echo "✅ .nojekyll file found"
+          fi
+          echo "✅ Build output verified"
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
