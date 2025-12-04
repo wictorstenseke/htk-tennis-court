@@ -159,10 +159,14 @@ jobs:
         run: npm ci
 
       - name: Build project for GitHub Pages
-        run: npm run build
+        run: |
+          echo "Repository name: ${{ github.event.repository.name }}"
+          echo "Building with base path: /${{ github.event.repository.name }}/"
+          npm run build
         env:
           NODE_ENV: production
           GITHUB_PAGES: 'true'
+          GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
 
       - name: Verify build output
         run: |
@@ -171,9 +175,20 @@ jobs:
             exit 1
           fi
           if [ ! -f "dist/.nojekyll" ]; then
-            echo "⚠️  Warning: dist/.nojekyll not found - GitHub Pages may process files with Jekyll"
+            echo "⚠️  Warning: dist/.nojekyll not found - creating it now"
+            touch dist/.nojekyll
           else
             echo "✅ .nojekyll file found"
+          fi
+          # Verify base path is correct in HTML
+          REPO_NAME="${{ github.event.repository.name }}"
+          if grep -q "/${REPO_NAME}/" dist/index.html; then
+            echo "✅ Base path correctly set to /${REPO_NAME}/"
+          else
+            echo "❌ Error: Base path /${REPO_NAME}/ not found in dist/index.html"
+            echo "HTML content:"
+            cat dist/index.html
+            exit 1
           fi
           echo "✅ Build output verified"
 
