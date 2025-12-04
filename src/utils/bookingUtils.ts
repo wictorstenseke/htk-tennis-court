@@ -168,13 +168,17 @@ export async function createBooking(bookingData: BookingCreate): Promise<Booking
 
     const bookingsRef = collection(db, BOOKINGS_COLLECTION)
 
-    const newBooking: Booking = {
+    // Build booking object without undefined fields
+    // Use object spread to conditionally include opponentUserId only if it exists
+    const newBooking = {
       userId: bookingData.userId,
-      opponentUserId: bookingData.opponentUserId,
       startTime: bookingData.startTime,
       endTime: bookingData.endTime,
       status: bookingData.status,
       createdAt: serverTimestamp(),
+      ...(bookingData.opponentUserId && bookingData.opponentUserId.trim()
+        ? { opponentUserId: bookingData.opponentUserId }
+        : {}),
     }
 
     const docRef = await addDoc(bookingsRef, newBooking)

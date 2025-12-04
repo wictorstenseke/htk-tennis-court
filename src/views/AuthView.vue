@@ -2,6 +2,27 @@
   <div class="min-h-screen bg-base-100 flex items-center justify-center px-4 py-8">
     <div class="card bg-base-200 shadow-xl w-full max-w-md">
       <div class="card-body">
+        <!-- Back Button -->
+        <div class="mb-4">
+          <RouterLink to="/" class="btn btn-ghost btn-sm">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            Tillbaka
+          </RouterLink>
+        </div>
+
         <!-- Header -->
         <h2 class="card-title justify-center text-3xl mb-4">
           {{ isSignUp ? 'Skapa konto' : 'Logga in' }}
@@ -181,6 +202,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { RouterLink } from 'vue-router'
 import { useFirebaseAuth } from '@/composables/useFirebaseAuth'
 
 const router = useRouter()

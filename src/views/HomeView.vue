@@ -15,94 +15,215 @@
         </div>
       </div>
 
-      <!-- Mock Users Section -->
-      <section class="mb-12">
-        <h2 class="text-3xl font-bold mb-6">Användare (Mock Data)</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div v-for="(user, index) in mockUsers" :key="index" class="card bg-base-200 shadow-lg">
-            <div class="card-body">
-              <h3 class="card-title text-lg">{{ user.displayName }}</h3>
-              <div class="space-y-1 text-sm">
-                <p class="flex items-center gap-2">
-                  <span class="badge badge-outline">Email</span>
-                  {{ user.email }}
-                </p>
-                <p v-if="user.phone" class="flex items-center gap-2">
-                  <span class="badge badge-outline">Telefon</span>
-                  {{ user.phone }}
-                </p>
-              </div>
-            </div>
+      <!-- Bookings Section -->
+      <section v-if="isAuthenticated" class="mb-12">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-3xl font-bold">Bokningar</h2>
+          <div class="flex gap-2">
+            <button class="btn btn-outline" @click="createMockBookings">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              Skapa testbokningar
+            </button>
+            <button class="btn btn-primary" @click="openModal">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Boka banan
+            </button>
           </div>
         </div>
-      </section>
 
-      <!-- Mock Bookings Section -->
-      <section>
-        <h2 class="text-3xl font-bold mb-6">Bokningar (Mock Data)</h2>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div v-for="booking in mockBookings" :key="booking.id" class="card bg-base-200 shadow-lg">
-            <div class="card-body">
-              <div class="flex items-start justify-between mb-3">
-                <div>
-                  <h3 class="card-title text-lg mb-1">
-                    {{ formatBookingDate(booking.startTime) }}
-                  </h3>
-                  <p class="text-sm text-base-content/70">
-                    {{ formatBookingTime(booking.startTime) }} -
-                    {{ formatBookingTime(booking.endTime) }}
-                  </p>
-                </div>
-                <span
-                  :class="{
-                    'badge-success': booking.status === 'booked',
-                    'badge-error': booking.status === 'cancelled',
-                  }"
-                  class="badge"
+        <!-- Loading state -->
+        <div v-if="bookingsStore.isLoading" class="flex justify-center py-8">
+          <span class="loading loading-spinner loading-lg"></span>
+        </div>
+
+        <!-- Error state -->
+        <div v-else-if="bookingsStore.error" class="alert alert-error mb-6">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="stroke-current shrink-0 h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <span>{{ bookingsStore.error }}</span>
+        </div>
+
+        <!-- Bookings list -->
+        <div v-else-if="bookedBookings.length > 0" class="space-y-1">
+          <div
+            v-for="booking in bookedBookings"
+            :key="booking.id"
+            class="flex items-center justify-between py-2 px-4 bg-base-200 rounded-lg"
+          >
+            <div class="flex-1">
+              <span class="text-sm font-medium">
+                {{ formatBookingDateTime(booking.startTime, booking.endTime) }}
+              </span>
+              <span class="text-sm font-semibold text-primary ml-2">
+                {{ getUserDisplayName(booking.userId) }}
+              </span>
+            </div>
+            <!-- More menu - only show for user's own bookings -->
+            <div v-if="isMyBooking(booking)" class="dropdown dropdown-end flex items-center">
+              <div tabindex="0" role="button" class="btn btn-ghost btn-xs btn-circle">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  {{ booking.status === 'booked' ? 'Bokad' : 'Avbokad' }}
-                </span>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                  />
+                </svg>
               </div>
-
-              <div class="divider my-2"></div>
-
-              <div class="space-y-2 text-sm">
-                <p>
-                  <span class="font-semibold">Spelare:</span>
-                  {{ getUserDisplayName(booking.userId) }}
-                </p>
-                <p v-if="booking.opponentUserId">
-                  <span class="font-semibold">Motståndare:</span>
-                  {{ getUserDisplayName(booking.opponentUserId) }}
-                </p>
-                <p v-else class="text-base-content/60 italic">Ingen motståndare vald</p>
-              </div>
+              <ul
+                tabindex="0"
+                class="dropdown-content menu bg-base-100 rounded-box z-[1] w-32 p-2 shadow"
+              >
+                <li>
+                  <a @click.prevent="handleEditBooking(booking)" class="text-sm">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                    Redigera
+                  </a>
+                </li>
+                <li>
+                  <a @click.prevent="handleDeleteBooking(booking)" class="text-sm text-error">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                    Ta bort
+                  </a>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
+
+        <!-- Empty state -->
+        <div v-else class="text-center py-12">
+          <p class="text-xl text-base-content/70">Inga kommande bokningar</p>
+        </div>
       </section>
+
+      <!-- Users Section -->
+      <section v-if="isAuthenticated" class="mb-12">
+        <h2 class="text-3xl font-bold mb-6">Användare</h2>
+        <div class="overflow-x-auto">
+          <table class="table table-zebra w-full">
+            <thead>
+              <tr>
+                <th>Namn</th>
+                <th>E-post</th>
+                <th>Telefon</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(user, index) in mockUsers" :key="index">
+                <td>{{ user.displayName }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.phone || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Booking Modal -->
+      <BookingModal
+        v-if="isAuthenticated"
+        :is-open="isModalOpen"
+        :existing-bookings="bookedBookings"
+        @close="closeModal"
+        @submit="handleBookingSubmit"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
+import { Timestamp } from 'firebase/firestore'
 import { useUserStore } from '@/stores/user'
 import { useFirebaseAuth } from '@/composables/useFirebaseAuth'
+import { useBookings } from '@/composables/useBookings'
 import {
   getMockUsers,
   getMockBookings,
-  getUserDisplayName,
-  formatBookingDate,
-  formatBookingTime,
+  getUserDisplayName as getMockUserDisplayName,
+  mockUserIds,
 } from '@/utils/mockData'
+import { formatBookingDateTime } from '@/utils/dateUtils'
+import { getUserDisplayName as fetchUserDisplayName } from '@/utils/userProfile'
+import BookingModal from '@/components/BookingModal.vue'
 import type { UserProfileRead } from '@/types/user'
 import type { BookingRead } from '@/types/booking'
 
 const router = useRouter()
 const userStore = useUserStore()
 const { signOut } = useFirebaseAuth()
+const { bookingsStore, currentUserId } = useBookings()
 
 const isAuthenticated = computed(() => userStore.isAuthenticated)
 const displayName = computed(() => userStore.displayName)
@@ -110,11 +231,205 @@ const email = computed(() => userStore.email)
 
 const mockUsers = ref<UserProfileRead[]>([])
 const mockBookings = ref<BookingRead[]>([])
+const isModalOpen = ref(false)
+const userDisplayNames = ref<Map<string, string>>(new Map())
+
+const bookedBookings = computed(() => {
+  const now = Timestamp.now().toMillis()
+
+  // Combine real bookings and mock bookings
+  const realBooked = bookingsStore.bookings.filter(b => b.status === 'booked')
+  const mockBooked = mockBookings.value.filter(b => b.status === 'booked')
+  const allBooked = [...realBooked, ...mockBooked]
+
+  // Filter to only show future bookings (startTime > now)
+  return allBooked
+    .filter(booking => booking.startTime.toMillis() > now)
+    .sort((a, b) => a.startTime.toMillis() - b.startTime.toMillis())
+})
 
 onMounted(() => {
   mockUsers.value = getMockUsers()
   mockBookings.value = getMockBookings()
+  if (isAuthenticated.value) {
+    loadFutureBookings()
+  }
 })
+
+// Watch for authentication changes and load bookings when user logs in
+watch(isAuthenticated, newValue => {
+  if (newValue) {
+    loadFutureBookings()
+  }
+})
+
+async function loadFutureBookings() {
+  if (!isAuthenticated.value) return
+
+  const now = Timestamp.now()
+
+  // Load all future bookings
+  await bookingsStore.loadAllBookings({
+    startDate: now,
+    status: 'booked',
+  })
+
+  // Load user display names for all bookings
+  await loadUserDisplayNames()
+}
+
+async function loadUserDisplayNames() {
+  const userIds = new Set<string>()
+  bookedBookings.value.forEach(booking => {
+    userIds.add(booking.userId)
+  })
+
+  const names = new Map<string, string>()
+
+  // First, add all mock user names using the mockUserIds array
+  mockUsers.value.forEach((user, index) => {
+    if (mockUserIds[index]) {
+      names.set(mockUserIds[index], user.displayName)
+    }
+  })
+
+  // Then try to fetch real user names from Firestore for any IDs not in mock users
+  await Promise.all(
+    Array.from(userIds)
+      .filter(userId => !names.has(userId)) // Only fetch if not already in map
+      .map(async userId => {
+        try {
+          const name = await fetchUserDisplayName(userId)
+          names.set(userId, name)
+        } catch {
+          // If fetch fails, try mock name as fallback
+          const mockName = getMockUserDisplayName(userId)
+          if (mockName !== 'Okänd användare') {
+            names.set(userId, mockName)
+          }
+        }
+      })
+  )
+
+  userDisplayNames.value = names
+}
+
+function getUserDisplayName(userId: string): string {
+  // First try to get from loaded user display names
+  const loadedName = userDisplayNames.value.get(userId)
+  if (loadedName && loadedName !== 'Okänd användare') return loadedName
+
+  // Fall back to mock user display name (for mock bookings)
+  const mockName = getMockUserDisplayName(userId)
+  if (mockName !== 'Okänd användare') return mockName
+
+  return 'Okänd användare'
+}
+
+function isMyBooking(booking: BookingRead): boolean {
+  return currentUserId.value !== null && booking.userId === currentUserId.value
+}
+
+function handleEditBooking(booking: BookingRead) {
+  // TODO: Implement edit functionality
+  // For now, we can open the modal with pre-filled data
+  console.log('Edit booking:', booking)
+  // You can implement edit modal later
+}
+
+async function handleDeleteBooking(booking: BookingRead) {
+  if (!confirm('Är du säker på att du vill ta bort denna bokning?')) {
+    return
+  }
+
+  try {
+    await bookingsStore.removeBooking(booking.id)
+    // Reload bookings to get updated list
+    await loadFutureBookings()
+  } catch (error) {
+    console.error('Error deleting booking:', error)
+    // Error is handled by the store
+  }
+}
+
+async function createMockBookings() {
+  if (!currentUserId.value) {
+    console.error('User not authenticated')
+    return
+  }
+
+  try {
+    const now = new Date()
+
+    // First booking: tomorrow at 10:00 - 12:00
+    const booking1Date = new Date(now)
+    booking1Date.setDate(booking1Date.getDate() + 1)
+    booking1Date.setHours(10, 0, 0, 0)
+    const booking1End = new Date(booking1Date)
+    booking1End.setHours(12, 0, 0, 0)
+
+    // Second booking: day after tomorrow at 14:00 - 16:00
+    const booking2Date = new Date(now)
+    booking2Date.setDate(booking2Date.getDate() + 2)
+    booking2Date.setHours(14, 0, 0, 0)
+    const booking2End = new Date(booking2Date)
+    booking2End.setHours(16, 0, 0, 0)
+
+    // Create both bookings
+    await Promise.all([
+      bookingsStore.addBooking({
+        userId: currentUserId.value,
+        startTime: Timestamp.fromDate(booking1Date),
+        endTime: Timestamp.fromDate(booking1End),
+        status: 'booked',
+      }),
+      bookingsStore.addBooking({
+        userId: currentUserId.value,
+        startTime: Timestamp.fromDate(booking2Date),
+        endTime: Timestamp.fromDate(booking2End),
+        status: 'booked',
+      }),
+    ])
+
+    // Reload bookings to get updated list
+    await loadFutureBookings()
+  } catch (error) {
+    console.error('Error creating mock bookings:', error)
+    // Error is handled by the store
+  }
+}
+
+function openModal() {
+  isModalOpen.value = true
+}
+
+function closeModal() {
+  isModalOpen.value = false
+}
+
+async function handleBookingSubmit(data: { startTime: Timestamp; endTime: Timestamp }) {
+  if (!currentUserId.value) {
+    console.error('User not authenticated')
+    return
+  }
+
+  try {
+    await bookingsStore.addBooking({
+      userId: currentUserId.value,
+      startTime: data.startTime,
+      endTime: data.endTime,
+      status: 'booked',
+    })
+
+    // Reload bookings to get updated list
+    await loadFutureBookings()
+
+    closeModal()
+  } catch (error) {
+    console.error('Error creating booking:', error)
+    // Error is handled by the store
+  }
+}
 
 async function handleSignOut() {
   try {
