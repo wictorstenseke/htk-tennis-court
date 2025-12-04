@@ -190,6 +190,99 @@ describe('bookingUtils', () => {
         'Start time must be before end time'
       )
     })
+
+    it('should create booking without opponentUserId', async () => {
+      const bookingData = {
+        userId: 'user-1',
+        startTime: createMockTimestamp(),
+        endTime: createMockTimestamp(Date.now() / 1000 + 3600),
+        status: 'booked' as const,
+        // opponentUserId is intentionally omitted
+      }
+
+      const mockCollectionRef = {}
+      const mockDocRef = { id: 'new-id' }
+      const mockDocSnap = {
+        id: 'new-id',
+        exists: () => true,
+        data: () => ({
+          userId: bookingData.userId,
+          startTime: bookingData.startTime,
+          endTime: bookingData.endTime,
+          status: bookingData.status,
+          createdAt: bookingData.startTime,
+          // opponentUserId should not be in the data
+        }),
+      }
+
+      vi.mocked(collection).mockReturnValue(mockCollectionRef as unknown as MockCollectionRef)
+      vi.mocked(addDoc).mockResolvedValue(mockDocRef as unknown as DocumentReference)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
+      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as unknown as MockDocumentSnapshot)
+
+      const result = await bookingUtils.createBooking(bookingData)
+
+      expect(result).toMatchObject({
+        id: 'new-id',
+        userId: bookingData.userId,
+        status: bookingData.status,
+      })
+
+      // Verify that addDoc was called without opponentUserId
+      expect(addDoc).toHaveBeenCalledWith(
+        mockCollectionRef,
+        expect.not.objectContaining({
+          opponentUserId: expect.anything(),
+        })
+      )
+    })
+
+    it('should create booking with opponentUserId when provided', async () => {
+      const bookingData = {
+        userId: 'user-1',
+        opponentUserId: 'user-2',
+        startTime: createMockTimestamp(),
+        endTime: createMockTimestamp(Date.now() / 1000 + 3600),
+        status: 'booked' as const,
+      }
+
+      const mockCollectionRef = {}
+      const mockDocRef = { id: 'new-id' }
+      const mockDocSnap = {
+        id: 'new-id',
+        exists: () => true,
+        data: () => ({
+          userId: bookingData.userId,
+          opponentUserId: bookingData.opponentUserId,
+          startTime: bookingData.startTime,
+          endTime: bookingData.endTime,
+          status: bookingData.status,
+          createdAt: bookingData.startTime,
+        }),
+      }
+
+      vi.mocked(collection).mockReturnValue(mockCollectionRef as unknown as MockCollectionRef)
+      vi.mocked(addDoc).mockResolvedValue(mockDocRef as unknown as DocumentReference)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
+      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as unknown as MockDocumentSnapshot)
+
+      const result = await bookingUtils.createBooking(bookingData)
+
+      expect(result).toMatchObject({
+        id: 'new-id',
+        userId: bookingData.userId,
+        opponentUserId: bookingData.opponentUserId,
+        status: bookingData.status,
+      })
+
+      // Verify that addDoc was called with opponentUserId
+      expect(addDoc).toHaveBeenCalledWith(
+        mockCollectionRef,
+        expect.objectContaining({
+          opponentUserId: bookingData.opponentUserId,
+        })
+      )
+    })
   })
 
   describe('updateBooking', () => {

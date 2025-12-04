@@ -118,3 +118,18 @@ export async function updateUserProfile(
     throw error
   }
 }
+
+/**
+ * Get user display name by userId
+ * @param userId - User ID
+ * @returns Display name or 'Okänd användare' if not found
+ */
+export async function getUserDisplayName(userId: string): Promise<string> {
+  try {
+    const profile = await getCurrentUserProfile(userId)
+    return profile?.displayName ?? 'Okänd användare'
+  } catch (error) {
+    console.error('Error getting user display name:', error)
+    return 'Okänd användare'
+  }
+}
