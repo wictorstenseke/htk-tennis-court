@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
+import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../HomeView.vue'
 import * as mockData from '@/utils/mockData'
 import { createMockUserProfile, createMockBooking } from '@/test-utils/firebase-mocks'
@@ -13,10 +14,27 @@ vi.mock('@/utils/mockData', () => ({
   formatBookingTime: vi.fn(),
 }))
 
+vi.mock('@/composables/useFirebaseAuth', () => ({
+  useFirebaseAuth: vi.fn(() => ({
+    signOut: vi.fn(),
+  })),
+}))
+
 describe('HomeView', () => {
+  let router: ReturnType<typeof createRouter>
+
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
+
+    // Create a router instance for tests
+    router = createRouter({
+      history: createWebHistory(),
+      routes: [
+        { path: '/', component: HomeView },
+        { path: '/auth', component: { template: '<div>Auth</div>' } },
+      ],
+    })
   })
 
   it('should render correctly', () => {
@@ -29,7 +47,11 @@ describe('HomeView', () => {
     vi.mocked(mockData.formatBookingDate).mockReturnValue('2024-01-01')
     vi.mocked(mockData.formatBookingTime).mockReturnValue('10:00')
 
-    const wrapper = mount(HomeView)
+    const wrapper = mount(HomeView, {
+      global: {
+        plugins: [router],
+      },
+    })
 
     expect(wrapper.text()).toContain('HTK Tennis')
     expect(wrapper.text()).toContain('Välkommen till HTK Tennis v2')
@@ -47,7 +69,11 @@ describe('HomeView', () => {
     vi.mocked(mockData.formatBookingDate).mockReturnValue('2024-01-01')
     vi.mocked(mockData.formatBookingTime).mockReturnValue('10:00')
 
-    const wrapper = mount(HomeView)
+    const wrapper = mount(HomeView, {
+      global: {
+        plugins: [router],
+      },
+    })
 
     await wrapper.vm.$nextTick()
 
@@ -67,7 +93,11 @@ describe('HomeView', () => {
     vi.mocked(mockData.formatBookingDate).mockReturnValue('2024-01-01')
     vi.mocked(mockData.formatBookingTime).mockReturnValue('10:00')
 
-    const wrapper = mount(HomeView)
+    const wrapper = mount(HomeView, {
+      global: {
+        plugins: [router],
+      },
+    })
 
     await wrapper.vm.$nextTick()
 
@@ -90,7 +120,11 @@ describe('HomeView', () => {
     vi.mocked(mockData.formatBookingDate).mockReturnValue('2024-01-01')
     vi.mocked(mockData.formatBookingTime).mockReturnValue('10:00')
 
-    const wrapper = mount(HomeView)
+    const wrapper = mount(HomeView, {
+      global: {
+        plugins: [router],
+      },
+    })
 
     await wrapper.vm.$nextTick()
 
@@ -111,7 +145,11 @@ describe('HomeView', () => {
     vi.mocked(mockData.formatBookingDate).mockReturnValue('2024-01-01')
     vi.mocked(mockData.formatBookingTime).mockReturnValue('10:00')
 
-    const wrapper = mount(HomeView)
+    const wrapper = mount(HomeView, {
+      global: {
+        plugins: [router],
+      },
+    })
 
     await wrapper.vm.$nextTick()
 

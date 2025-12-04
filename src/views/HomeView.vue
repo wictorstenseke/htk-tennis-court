@@ -4,6 +4,15 @@
       <div class="text-center mb-8">
         <h1 class="text-5xl font-bold mb-4">HTK Tennis</h1>
         <p class="text-xl text-base-content/70">Välkommen till HTK Tennis v2</p>
+        <div class="mt-4">
+          <RouterLink v-if="!isAuthenticated" to="/auth" class="btn btn-primary">
+            Logga in / Skapa konto
+          </RouterLink>
+          <div v-else class="flex items-center justify-center gap-4">
+            <span class="text-base-content/70">Inloggad som: {{ displayName || email }}</span>
+            <button @click="handleSignOut" class="btn btn-outline btn-sm">Logga ut</button>
+          </div>
+        </div>
       </div>
 
       <!-- Mock Users Section -->
@@ -77,7 +86,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
+import { useFirebaseAuth } from '@/composables/useFirebaseAuth'
 import {
   getMockUsers,
   getMockBookings,
@@ -88,6 +100,14 @@ import {
 import type { UserProfileRead } from '@/types/user'
 import type { BookingRead } from '@/types/booking'
 
+const router = useRouter()
+const userStore = useUserStore()
+const { signOut } = useFirebaseAuth()
+
+const isAuthenticated = computed(() => userStore.isAuthenticated)
+const displayName = computed(() => userStore.displayName)
+const email = computed(() => userStore.email)
+
 const mockUsers = ref<UserProfileRead[]>([])
 const mockBookings = ref<BookingRead[]>([])
 
@@ -95,4 +115,13 @@ onMounted(() => {
   mockUsers.value = getMockUsers()
   mockBookings.value = getMockBookings()
 })
+
+async function handleSignOut() {
+  try {
+    await signOut()
+    router.push('/auth')
+  } catch (error) {
+    console.error('Sign out error:', error)
+  }
+}
 </script>
