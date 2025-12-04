@@ -213,7 +213,7 @@ jobs:
           retention-days: 1
 
   pr-comment:
-    name: PR Comment
+    name: Build Summary Docs
     runs-on: ubuntu-latest
     needs: [quality-assurance, build-app]
     if: github.event_name == 'pull_request'
@@ -248,10 +248,8 @@ jobs:
           echo "total_size=${TOTAL_SIZE}" >> $GITHUB_OUTPUT
           echo "size_mb=${SIZE_MB}" >> $GITHUB_OUTPUT
           
-          # Largest files
-          echo "largest_files<<EOF" >> $GITHUB_OUTPUT
-          find dist -type f -exec ls -lh {} \; | sort -k5 -hr | head -5 | awk '{print "- " $5 " - " $9}' | sed 's|dist/||' >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          # Largest files - store in file to avoid multiline issues
+          find dist -type f -exec ls -lh {} \; | sort -k5 -hr | head -5 | awk '{print "- " $5 " - " $9}' | sed 's|dist/||' > largest_files.txt
           
           # File count
           FILE_COUNT=$(find dist -type f | wc -l)
@@ -300,12 +298,27 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const fs = require('fs');
+            
+            // Safely get outputs with defaults
             const sizeMb = parseInt('${{ steps.metrics.outputs.size_mb }}') || 0;
-            const totalSize = '${{ steps.metrics.outputs.total_size }}';
-            const fileCount = '${{ steps.metrics.outputs.file_count }}';
-            const largestFiles = '${{ steps.metrics.outputs.largest_files }}';
+            const totalSize = '${{ steps.metrics.outputs.total_size }}' || 'Unknown';
+            const fileCount = '${{ steps.metrics.outputs.file_count }}' || '0';
             const coverageAvailable = '${{ steps.coverage.outputs.coverage_available }}' === 'true';
-            const coveragePercentage = '${{ steps.coverage.outputs.coverage_percentage }}';
+            const coveragePercentage = '${{ steps.coverage.outputs.coverage_percentage }}' || '0';
+            
+            // Read largest files from file (safer than multiline output substitution)
+            let largestFiles = 'No files found';
+            try {
+              if (fs.existsSync('largest_files.txt')) {
+                largestFiles = fs.readFileSync('largest_files.txt', 'utf-8').trim();
+                if (!largestFiles) {
+                  largestFiles = 'No files found';
+                }
+              }
+            } catch (e) {
+              largestFiles = 'Error reading file list';
+            }
             
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
@@ -319,8 +332,8 @@ jobs:
             );
             
             const sizeWarning = sizeMb > 5 
-              ? `⚠️ **Warning:** Build size exceeds 5MB threshold`
-              : `✅ Build size is within acceptable limits`;
+              ? '⚠️ **Warning:** Build size exceeds 5MB threshold'
+              : '✅ Build size is within acceptable limits';
             
             const coverageSection = coverageAvailable
               ? `### 📈 Test Coverage
