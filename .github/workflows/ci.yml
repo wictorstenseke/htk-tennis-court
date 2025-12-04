@@ -11,6 +11,7 @@ on:
       - '**.md'
       - '.gitignore'
       - 'LICENSE'
+  workflow_dispatch: # Allow manual triggering
 
 permissions:
   contents: read
