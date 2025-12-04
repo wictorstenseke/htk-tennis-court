@@ -1,7 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useBookings } from '../useBookings'
-import { useBookingsStore } from '@/stores/bookings'
 import { useUserStore } from '@/stores/user'
 import { createMockUser, createMockBooking } from '@/test-utils/firebase-mocks'
 
@@ -78,4 +77,3 @@ describe('useBookings', () => {
     })
   })
 })
-

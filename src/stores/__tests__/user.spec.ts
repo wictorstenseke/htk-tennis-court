@@ -135,7 +135,7 @@ describe('useUserStore', () => {
 
       try {
         await store.updateProfile({ displayName: 'New Name' })
-      } catch (e) {
+      } catch {
         // Expected to throw
       }
       expect(store.error).toBe('Update failed')
@@ -195,4 +195,3 @@ describe('useUserStore', () => {
     })
   })
 })
-

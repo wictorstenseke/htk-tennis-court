@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { Timestamp } from 'firebase/firestore'
 import { useBookingsStore } from '../bookings'
 import * as bookingUtils from '@/utils/bookingUtils'
 import { createMockBooking } from '@/test-utils/firebase-mocks'
@@ -80,10 +79,7 @@ describe('useBookingsStore', () => {
   describe('loadAllBookings', () => {
     it('should load all bookings successfully', async () => {
       const store = useBookingsStore()
-      const mockBookings = [
-        createMockBooking({ id: '1' }),
-        createMockBooking({ id: '2' }),
-      ]
+      const mockBookings = [createMockBooking({ id: '1' }), createMockBooking({ id: '2' })]
 
       vi.mocked(bookingUtils.getAllBookings).mockResolvedValue(mockBookings)
 
@@ -102,7 +98,7 @@ describe('useBookingsStore', () => {
 
       try {
         await store.loadAllBookings()
-      } catch (e) {
+      } catch {
         // Expected to throw
       }
       expect(store.error).toBe('Failed to load')
@@ -275,4 +271,3 @@ describe('useBookingsStore', () => {
     })
   })
 })
-

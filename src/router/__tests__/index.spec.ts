@@ -1,6 +1,4 @@
 import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { createRouter, createWebHistory } from 'vue-router'
 import router from '../index'
 
 describe('router', () => {
@@ -22,10 +20,9 @@ describe('router', () => {
     const route = router.getRoutes().find(r => r.name === 'home')
     expect(route).toBeDefined()
 
-    if (route && typeof route.component === 'function') {
-      const component = await route.component()
-      expect(component).toBeDefined()
+    // Check that route has components (Vue Router uses components, not component)
+    if (route) {
+      expect(route.components).toBeDefined()
     }
   })
 })
-

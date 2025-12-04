@@ -8,11 +8,23 @@ import {
   updateDoc,
   deleteDoc,
   query,
-  where,
-  serverTimestamp,
 } from 'firebase/firestore'
 import * as bookingUtils from '../bookingUtils'
 import { createMockBooking, createMockTimestamp } from '@/test-utils/firebase-mocks'
+import type {
+  DocumentReference,
+  DocumentSnapshot,
+  QuerySnapshot,
+  CollectionReference,
+  Query,
+} from 'firebase/firestore'
+
+// Helper type for Firebase mocks
+type MockDocumentRef = DocumentReference
+type MockDocumentSnapshot = DocumentSnapshot
+type MockQuerySnapshot = QuerySnapshot
+type MockCollectionRef = CollectionReference
+type MockQuery = Query
 
 // Mock Firebase Firestore
 vi.mock('firebase/firestore', () => ({
@@ -56,8 +68,8 @@ describe('bookingUtils', () => {
         }),
       }
 
-      vi.mocked(doc).mockReturnValue(mockDocRef as any)
-      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as any)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
+      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as unknown as MockDocumentSnapshot)
 
       const result = await bookingUtils.getBookingById(bookingId)
 
@@ -75,8 +87,8 @@ describe('bookingUtils', () => {
         exists: () => false,
       }
 
-      vi.mocked(doc).mockReturnValue(mockDocRef as any)
-      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as any)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
+      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as unknown as MockDocumentSnapshot)
 
       const result = await bookingUtils.getBookingById(bookingId)
 
@@ -86,10 +98,7 @@ describe('bookingUtils', () => {
 
   describe('getAllBookings', () => {
     it('should return all bookings', async () => {
-      const mockBookings = [
-        createMockBooking({ id: '1' }),
-        createMockBooking({ id: '2' }),
-      ]
+      const mockBookings = [createMockBooking({ id: '1' }), createMockBooking({ id: '2' })]
       const mockCollectionRef = {}
       const mockQuery = {}
       const mockQuerySnapshot = {
@@ -107,9 +116,9 @@ describe('bookingUtils', () => {
         })),
       }
 
-      vi.mocked(collection).mockReturnValue(mockCollectionRef as any)
-      vi.mocked(query).mockReturnValue(mockQuery as any)
-      vi.mocked(getDocs).mockResolvedValue(mockQuerySnapshot as any)
+      vi.mocked(collection).mockReturnValue(mockCollectionRef as unknown as MockCollectionRef)
+      vi.mocked(query).mockReturnValue(mockQuery as unknown as MockQuery)
+      vi.mocked(getDocs).mockResolvedValue(mockQuerySnapshot as unknown as MockQuerySnapshot)
 
       const result = await bookingUtils.getAllBookings()
 
@@ -127,7 +136,7 @@ describe('bookingUtils', () => {
         endTime: createMockTimestamp(Date.now() / 1000 + 3600),
         status: 'booked' as const,
       }
-      const createdBooking = createMockBooking({ id: 'new-id', ...bookingData })
+      createMockBooking({ id: 'new-id', ...bookingData })
       const mockCollectionRef = {}
       const mockDocRef = { id: 'new-id' }
       const mockDocSnap = {
@@ -142,10 +151,10 @@ describe('bookingUtils', () => {
         }),
       }
 
-      vi.mocked(collection).mockReturnValue(mockCollectionRef as any)
-      vi.mocked(addDoc).mockResolvedValue(mockDocRef as any)
-      vi.mocked(doc).mockReturnValue(mockDocRef as any)
-      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as any)
+      vi.mocked(collection).mockReturnValue(mockCollectionRef as unknown as MockCollectionRef)
+      vi.mocked(addDoc).mockResolvedValue(mockDocRef as unknown as DocumentReference)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
+      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as unknown as MockDocumentSnapshot)
 
       const result = await bookingUtils.createBooking(bookingData)
 
@@ -201,8 +210,8 @@ describe('bookingUtils', () => {
         }),
       }
 
-      vi.mocked(doc).mockReturnValue(mockDocRef as any)
-      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as any)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
+      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as unknown as MockDocumentSnapshot)
       vi.mocked(updateDoc).mockResolvedValue(undefined)
 
       await bookingUtils.updateBooking(bookingId, updates)
@@ -218,8 +227,8 @@ describe('bookingUtils', () => {
         exists: () => false,
       }
 
-      vi.mocked(doc).mockReturnValue(mockDocRef as any)
-      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as any)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
+      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as unknown as MockDocumentSnapshot)
 
       await expect(bookingUtils.updateBooking(bookingId, updates)).rejects.toThrow(
         'Booking does not exist'
@@ -243,8 +252,8 @@ describe('bookingUtils', () => {
         }),
       }
 
-      vi.mocked(doc).mockReturnValue(mockDocRef as any)
-      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as any)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
+      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as unknown as MockDocumentSnapshot)
 
       await expect(bookingUtils.updateBooking(bookingId, updates)).rejects.toThrow(
         'No valid fields to update'
@@ -269,8 +278,8 @@ describe('bookingUtils', () => {
         }),
       }
 
-      vi.mocked(doc).mockReturnValue(mockDocRef as any)
-      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as any)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
+      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as unknown as MockDocumentSnapshot)
       vi.mocked(updateDoc).mockResolvedValue(undefined)
 
       await bookingUtils.cancelBooking(bookingId)
@@ -296,8 +305,8 @@ describe('bookingUtils', () => {
         }),
       }
 
-      vi.mocked(doc).mockReturnValue(mockDocRef as any)
-      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as any)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
+      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as unknown as MockDocumentSnapshot)
       vi.mocked(deleteDoc).mockResolvedValue(undefined)
 
       await bookingUtils.deleteBooking(bookingId)
@@ -312,13 +321,10 @@ describe('bookingUtils', () => {
         exists: () => false,
       }
 
-      vi.mocked(doc).mockReturnValue(mockDocRef as any)
-      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as any)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
+      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as unknown as MockDocumentSnapshot)
 
-      await expect(bookingUtils.deleteBooking(bookingId)).rejects.toThrow(
-        'Booking does not exist'
-      )
+      await expect(bookingUtils.deleteBooking(bookingId)).rejects.toThrow('Booking does not exist')
     })
   })
 })
-

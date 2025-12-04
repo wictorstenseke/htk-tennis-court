@@ -70,4 +70,3 @@ export function createMockUserProfile(overrides?: Partial<UserProfileRead>): Use
     ...overrides,
   }
 }
-

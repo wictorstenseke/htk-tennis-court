@@ -1,4 +1,4 @@
-import { config } from '@vue/test-utils'
+import { beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { vi } from 'vitest'
 
@@ -15,4 +15,3 @@ vi.mock('@/config/firebase', () => ({
 
 // Export test utilities
 export * from './firebase-mocks'
-

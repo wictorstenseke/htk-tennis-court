@@ -46,8 +46,10 @@ describe('useAuth', () => {
     const userStore = useUserStore()
     const setUserSpy = vi.spyOn(userStore, 'setUser')
 
-    vi.mocked(onAuthStateChanged).mockImplementation((auth, callback) => {
-      callback(mockUser)
+    vi.mocked(onAuthStateChanged).mockImplementation((_auth, nextOrObserver) => {
+      if (typeof nextOrObserver === 'function') {
+        nextOrObserver(mockUser)
+      }
       return unsubscribe
     })
 
@@ -70,8 +72,10 @@ describe('useAuth', () => {
     const userStore = useUserStore()
     const setUserSpy = vi.spyOn(userStore, 'setUser')
 
-    vi.mocked(onAuthStateChanged).mockImplementation((auth, callback) => {
-      callback(null)
+    vi.mocked(onAuthStateChanged).mockImplementation((_auth, nextOrObserver) => {
+      if (typeof nextOrObserver === 'function') {
+        nextOrObserver(null)
+      }
       return unsubscribe
     })
 
@@ -108,8 +112,8 @@ describe('useAuth', () => {
     const setUserSpy = vi.spyOn(userStore, 'setUser')
     const error = new Error('Auth error')
 
-    vi.mocked(onAuthStateChanged).mockImplementation((auth, callback, errorCallback) => {
-      if (errorCallback) {
+    vi.mocked(onAuthStateChanged).mockImplementation((_auth, _nextOrObserver, errorCallback) => {
+      if (errorCallback && typeof errorCallback === 'function') {
         errorCallback(error)
       }
       return unsubscribe
@@ -142,4 +146,3 @@ describe('useAuth', () => {
     expect(wrapper.vm.userStore).toBeDefined()
   })
 })
-

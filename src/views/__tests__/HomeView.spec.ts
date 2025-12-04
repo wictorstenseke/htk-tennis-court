@@ -119,4 +119,3 @@ describe('HomeView', () => {
     expect(wrapper.text()).toContain('Avbokad')
   })
 })
-

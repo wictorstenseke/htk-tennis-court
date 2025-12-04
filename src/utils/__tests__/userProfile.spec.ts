@@ -1,7 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore'
+import type { DocumentReference, DocumentSnapshot } from 'firebase/firestore'
 import * as userProfile from '../userProfile'
-import { createMockUser, createMockUserProfile, createMockTimestamp } from '@/test-utils/firebase-mocks'
+import { createMockUser, createMockUserProfile } from '@/test-utils/firebase-mocks'
+
+// Helper types for Firebase mocks
+type MockDocumentRef = DocumentReference
+type MockDocumentSnapshot = DocumentSnapshot
 
 // Mock Firebase Firestore
 vi.mock('firebase/firestore', () => ({
@@ -31,8 +36,8 @@ describe('userProfile', () => {
         data: () => mockProfile,
       }
 
-      vi.mocked(doc).mockReturnValue(mockDocRef as any)
-      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as any)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
+      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as unknown as MockDocumentSnapshot)
 
       const result = await userProfile.getCurrentUserProfile(uid)
 
@@ -48,8 +53,8 @@ describe('userProfile', () => {
         exists: () => false,
       }
 
-      vi.mocked(doc).mockReturnValue(mockDocRef as any)
-      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as any)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
+      vi.mocked(getDoc).mockResolvedValue(mockDocSnap as unknown as MockDocumentSnapshot)
 
       const result = await userProfile.getCurrentUserProfile(uid)
 
@@ -60,7 +65,7 @@ describe('userProfile', () => {
       const uid = 'user-123'
       const error = new Error('Firestore error')
 
-      vi.mocked(doc).mockReturnValue({} as any)
+      vi.mocked(doc).mockReturnValue({} as unknown as MockDocumentRef)
       vi.mocked(getDoc).mockRejectedValue(error)
 
       await expect(userProfile.getCurrentUserProfile(uid)).rejects.toThrow(error)
@@ -77,10 +82,13 @@ describe('userProfile', () => {
       const mockProfile = createMockUserProfile()
       const mockDocRef = {}
 
-      vi.mocked(doc).mockReturnValue(mockDocRef as any)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
       vi.mocked(getDoc)
-        .mockResolvedValueOnce({ exists: () => false } as any) // First call - check if exists
-        .mockResolvedValueOnce({ exists: () => true, data: () => mockProfile } as any) // Second call - refetch
+        .mockResolvedValueOnce({ exists: () => false } as unknown as MockDocumentSnapshot) // First call - check if exists
+        .mockResolvedValueOnce({
+          exists: () => true,
+          data: () => mockProfile,
+        } as unknown as MockDocumentSnapshot) // Second call - refetch
 
       vi.mocked(setDoc).mockResolvedValue(undefined)
 
@@ -95,11 +103,11 @@ describe('userProfile', () => {
       const mockProfile = createMockUserProfile()
       const mockDocRef = {}
 
-      vi.mocked(doc).mockReturnValue(mockDocRef as any)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
       vi.mocked(getDoc).mockResolvedValue({
         exists: () => true,
         data: () => mockProfile,
-      } as any)
+      } as unknown as MockDocumentSnapshot)
 
       const result = await userProfile.createUserProfileFromAuth(mockUser)
 
@@ -116,10 +124,13 @@ describe('userProfile', () => {
       const mockDocRef = {}
       const mockProfile = createMockUserProfile({ displayName: 'testuser' })
 
-      vi.mocked(doc).mockReturnValue(mockDocRef as any)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
       vi.mocked(getDoc)
-        .mockResolvedValueOnce({ exists: () => false } as any)
-        .mockResolvedValueOnce({ exists: () => true, data: () => mockProfile } as any)
+        .mockResolvedValueOnce({ exists: () => false } as unknown as MockDocumentSnapshot)
+        .mockResolvedValueOnce({
+          exists: () => true,
+          data: () => mockProfile,
+        } as unknown as MockDocumentSnapshot)
 
       vi.mocked(setDoc).mockResolvedValue(undefined)
 
@@ -141,11 +152,11 @@ describe('userProfile', () => {
       const updates = { displayName: 'Updated Name' }
       const mockDocRef = {}
 
-      vi.mocked(doc).mockReturnValue(mockDocRef as any)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
       vi.mocked(getDoc).mockResolvedValue({
         exists: () => true,
         data: () => existingProfile,
-      } as any)
+      } as unknown as MockDocumentSnapshot)
       vi.mocked(updateDoc).mockResolvedValue(undefined)
 
       await userProfile.updateUserProfile(uid, updates)
@@ -158,10 +169,10 @@ describe('userProfile', () => {
       const updates = { displayName: 'Updated Name' }
       const mockDocRef = {}
 
-      vi.mocked(doc).mockReturnValue(mockDocRef as any)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
       vi.mocked(getDoc).mockResolvedValue({
         exists: () => false,
-      } as any)
+      } as unknown as MockDocumentSnapshot)
 
       await expect(userProfile.updateUserProfile(uid, updates)).rejects.toThrow(
         'User profile does not exist'
@@ -174,11 +185,11 @@ describe('userProfile', () => {
       const existingProfile = createMockUserProfile()
       const mockDocRef = {}
 
-      vi.mocked(doc).mockReturnValue(mockDocRef as any)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
       vi.mocked(getDoc).mockResolvedValue({
         exists: () => true,
         data: () => existingProfile,
-      } as any)
+      } as unknown as MockDocumentSnapshot)
 
       await expect(userProfile.updateUserProfile(uid, updates)).rejects.toThrow(
         'Display name cannot be empty'
@@ -191,11 +202,11 @@ describe('userProfile', () => {
       const existingProfile = createMockUserProfile()
       const mockDocRef = {}
 
-      vi.mocked(doc).mockReturnValue(mockDocRef as any)
+      vi.mocked(doc).mockReturnValue(mockDocRef as unknown as MockDocumentRef)
       vi.mocked(getDoc).mockResolvedValue({
         exists: () => true,
         data: () => existingProfile,
-      } as any)
+      } as unknown as MockDocumentSnapshot)
 
       await expect(userProfile.updateUserProfile(uid, updates)).rejects.toThrow(
         'No valid fields to update'
@@ -203,4 +214,3 @@ describe('userProfile', () => {
     })
   })
 })
-

@@ -7,9 +7,15 @@ import { visualizer } from 'rollup-plugin-visualizer'
 export default defineConfig({
   // Base path for GitHub Pages deployment
   // Can be overridden with GITHUB_REPOSITORY_NAME env var
+  // If GITHUB_REPOSITORY_NAME contains a '/', extract just the repo name
   base:
     process.env.GITHUB_PAGES === 'true'
-      ? `/${process.env.GITHUB_REPOSITORY_NAME || 'htk-tennis-v2'}/`
+      ? (() => {
+          const repoName = process.env.GITHUB_REPOSITORY_NAME || 'htk-tennis-v2'
+          // Extract repo name if full format (owner/repo) is provided
+          const repoPart = repoName.includes('/') ? repoName.split('/')[1] : repoName
+          return `/${repoPart}/`
+        })()
       : '/',
   plugins: [
     vue(),
