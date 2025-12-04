@@ -1,13 +1,12 @@
 name: Deploy to GitHub Pages
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
     branches:
       - main
-    paths-ignore:
-      - '**.md'
-      - '.gitignore'
-      - 'LICENSE'
   workflow_dispatch: # Allow manual triggering
 
 permissions:
@@ -20,10 +19,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
-    name: Build and Deploy
+  deploy:
+    name: Deploy
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -31,6 +31,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -41,18 +43,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm run test:run
-
-      - name: Build project
+      - name: Build project for GitHub Pages
         run: |
-          echo "Repository name: ${{ github.event.repository.name }}"
-          echo "Building with base path: /${{ github.event.repository.name }}/"
+          echo "Repository name: ${{ github.repository }}"
+          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
+          echo "Building with base path: /${REPO_NAME}/"
           npm run build
         env:
           NODE_ENV: production
           GITHUB_PAGES: 'true'
-          GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
+          GITHUB_REPOSITORY_NAME: ${{ github.repository }}
           VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
           VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
           VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
@@ -73,7 +73,7 @@ jobs:
             echo "✅ .nojekyll file found"
           fi
           # Verify base path is correct in HTML
-          REPO_NAME="${{ github.event.repository.name }}"
+          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
           if grep -q "/${REPO_NAME}/" dist/index.html; then
             echo "✅ Base path correctly set to /${REPO_NAME}/"
           else
@@ -85,7 +85,7 @@ jobs:
           echo "✅ Build output verified"
 
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
