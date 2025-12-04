@@ -181,10 +181,11 @@ jobs:
             echo "✅ .nojekyll file found"
           fi
           # Verify base path is correct in HTML
-          if grep -q '/htk-tennis-v2/' dist/index.html; then
-            echo "✅ Base path correctly set to /htk-tennis-v2/"
+          REPO_NAME="${{ github.event.repository.name }}"
+          if grep -q "/${REPO_NAME}/" dist/index.html; then
+            echo "✅ Base path correctly set to /${REPO_NAME}/"
           else
-            echo "❌ Error: Base path not found in dist/index.html"
+            echo "❌ Error: Base path /${REPO_NAME}/ not found in dist/index.html"
             echo "HTML content:"
             cat dist/index.html
             exit 1
