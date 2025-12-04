@@ -23,10 +23,10 @@ export function useAuth() {
           userStore.setUser(null)
         }
       },
-      (error) => {
+      error => {
         console.error('Auth state change error:', error)
         userStore.setUser(null)
-      },
+      }
     )
   }
 
@@ -44,4 +44,3 @@ export function useAuth() {
     userStore,
   }
 }
-

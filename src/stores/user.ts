@@ -24,7 +24,7 @@ export const useUserStore = defineStore('user', () => {
   // Actions
   async function setUser(user: User | null) {
     currentUser.value = user
-    
+
     if (user) {
       await loadUserProfile(user.uid)
     } else {
@@ -36,14 +36,14 @@ export const useUserStore = defineStore('user', () => {
     try {
       isLoading.value = true
       error.value = null
-      
+
       let profile = await getCurrentUserProfile(uid)
-      
+
       // If profile doesn't exist and we have a current user, create it
       if (!profile && currentUser.value) {
         profile = await createUserProfileFromAuth(currentUser.value)
       }
-      
+
       userProfile.value = profile
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to load user profile'
@@ -61,9 +61,9 @@ export const useUserStore = defineStore('user', () => {
     try {
       isLoading.value = true
       error.value = null
-      
+
       await updateUserProfile(currentUser.value.uid, updates)
-      
+
       // Reload profile to get updated data
       await loadUserProfile(currentUser.value.uid)
     } catch (err) {
@@ -97,4 +97,3 @@ export const useUserStore = defineStore('user', () => {
     clearError,
   }
 })
-

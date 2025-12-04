@@ -19,4 +19,3 @@ export async function initFirestore(): Promise<void> {
     throw error
   }
 }
-

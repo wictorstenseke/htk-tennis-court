@@ -53,4 +53,3 @@ export interface BookingUpdate {
   status?: BookingStatus
   opponentUserId?: string
 }
-

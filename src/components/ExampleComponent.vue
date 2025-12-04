@@ -18,4 +18,3 @@ withDefaults(defineProps<Props>(), {
   message: 'This is an example component',
 })
 </script>
-

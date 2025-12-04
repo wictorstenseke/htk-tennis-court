@@ -22,12 +22,8 @@ export const useBookingsStore = defineStore('bookings', () => {
   const error = ref<string | null>(null)
 
   // Getters
-  const activeBookings = computed(() =>
-    bookings.value.filter((b) => b.status === 'booked'),
-  )
-  const cancelledBookings = computed(() =>
-    bookings.value.filter((b) => b.status === 'cancelled'),
-  )
+  const activeBookings = computed(() => bookings.value.filter(b => b.status === 'booked'))
+  const cancelledBookings = computed(() => bookings.value.filter(b => b.status === 'cancelled'))
 
   /**
    * Check if a user can edit/cancel a booking
@@ -35,42 +31,34 @@ export const useBookingsStore = defineStore('bookings', () => {
    * @param userId - Current user ID
    * @returns true if user can edit/cancel
    */
-  function canUserEditBooking(
-    booking: BookingRead,
-    userId: string,
-  ): boolean {
-    return (
-      booking.userId === userId ||
-      booking.opponentUserId === userId
-    )
+  function canUserEditBooking(booking: BookingRead, userId: string): boolean {
+    return booking.userId === userId || booking.opponentUserId === userId
   }
 
   // Actions
-  async function loadAllBookings(
-    filters?: {
-      startDate?: Timestamp
-      endDate?: Timestamp
-      status?: 'booked' | 'cancelled'
-    },
-  ) {
+  async function loadAllBookings(filters?: {
+    startDate?: Timestamp
+    endDate?: Timestamp
+    status?: 'booked' | 'cancelled'
+  }) {
     try {
       isLoading.value = true
       error.value = null
 
       const constraints = []
-      
+
       if (filters?.startDate) {
         constraints.push(where('startTime', '>=', filters.startDate))
       }
-      
+
       if (filters?.endDate) {
         constraints.push(where('endTime', '<=', filters.endDate))
       }
-      
+
       if (filters?.status) {
         constraints.push(where('status', '==', filters.status))
       }
-      
+
       // Always order by startTime
       constraints.push(orderBy('startTime', 'asc'))
 
@@ -90,26 +78,26 @@ export const useBookingsStore = defineStore('bookings', () => {
       startDate?: Timestamp
       endDate?: Timestamp
       status?: 'booked' | 'cancelled'
-    },
+    }
   ) {
     try {
       isLoading.value = true
       error.value = null
 
       const constraints = []
-      
+
       if (filters?.startDate) {
         constraints.push(where('startTime', '>=', filters.startDate))
       }
-      
+
       if (filters?.endDate) {
         constraints.push(where('endTime', '<=', filters.endDate))
       }
-      
+
       if (filters?.status) {
         constraints.push(where('status', '==', filters.status))
       }
-      
+
       constraints.push(orderBy('startTime', 'asc'))
 
       bookings.value = await getUserBookings(userId, constraints)
@@ -128,26 +116,26 @@ export const useBookingsStore = defineStore('bookings', () => {
       startDate?: Timestamp
       endDate?: Timestamp
       status?: 'booked' | 'cancelled'
-    },
+    }
   ) {
     try {
       isLoading.value = true
       error.value = null
 
       const constraints = []
-      
+
       if (filters?.startDate) {
         constraints.push(where('startTime', '>=', filters.startDate))
       }
-      
+
       if (filters?.endDate) {
         constraints.push(where('endTime', '<=', filters.endDate))
       }
-      
+
       if (filters?.status) {
         constraints.push(where('status', '==', filters.status))
       }
-      
+
       constraints.push(orderBy('startTime', 'asc'))
 
       bookings.value = await getInvolvedBookings(userId, constraints)
@@ -167,11 +155,11 @@ export const useBookingsStore = defineStore('bookings', () => {
 
       const booking = await getBookingById(bookingId)
       currentBooking.value = booking
-      
+
       if (!booking) {
         throw new Error('Booking not found')
       }
-      
+
       return booking
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to load booking'
@@ -188,13 +176,11 @@ export const useBookingsStore = defineStore('bookings', () => {
       error.value = null
 
       const newBooking = await createBooking(bookingData)
-      
+
       // Add to local state
       bookings.value.push(newBooking)
-      bookings.value.sort((a, b) => 
-        a.startTime.toMillis() - b.startTime.toMillis()
-      )
-      
+      bookings.value.sort((a, b) => a.startTime.toMillis() - b.startTime.toMillis())
+
       return newBooking
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to create booking'
@@ -211,16 +197,16 @@ export const useBookingsStore = defineStore('bookings', () => {
       error.value = null
 
       await updateBooking(bookingId, updates)
-      
+
       // Update local state
-      const index = bookings.value.findIndex((b) => b.id === bookingId)
+      const index = bookings.value.findIndex(b => b.id === bookingId)
       if (index !== -1) {
         bookings.value[index] = {
           ...bookings.value[index],
           ...updates,
         } as BookingRead
       }
-      
+
       if (currentBooking.value?.id === bookingId) {
         currentBooking.value = {
           ...currentBooking.value,
@@ -242,16 +228,16 @@ export const useBookingsStore = defineStore('bookings', () => {
       error.value = null
 
       await cancelBooking(bookingId)
-      
+
       // Update local state
-      const index = bookings.value.findIndex((b) => b.id === bookingId)
+      const index = bookings.value.findIndex(b => b.id === bookingId)
       if (index !== -1) {
         bookings.value[index] = {
           ...bookings.value[index],
           status: 'cancelled',
         }
       }
-      
+
       if (currentBooking.value?.id === bookingId) {
         currentBooking.value = {
           ...currentBooking.value,
@@ -273,10 +259,10 @@ export const useBookingsStore = defineStore('bookings', () => {
       error.value = null
 
       await deleteBooking(bookingId)
-      
+
       // Remove from local state
-      bookings.value = bookings.value.filter((b) => b.id !== bookingId)
-      
+      bookings.value = bookings.value.filter(b => b.id !== bookingId)
+
       if (currentBooking.value?.id === bookingId) {
         currentBooking.value = null
       }
@@ -320,4 +306,3 @@ export const useBookingsStore = defineStore('bookings', () => {
     clearCurrentBooking,
   }
 })
-

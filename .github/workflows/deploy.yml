@@ -22,6 +22,7 @@ jobs:
   build-and-deploy:
     name: Build and Deploy
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -40,13 +41,21 @@ jobs:
         run: npm ci
 
       - name: Run tests
-        run: npm run test -- --run
+        run: npm run test:run
 
       - name: Build project
         run: npm run build
         env:
           NODE_ENV: production
           GITHUB_PAGES: 'true'
+
+      - name: Verify build output
+        run: |
+          if [ ! -f "dist/index.html" ]; then
+            echo "❌ Error: dist/index.html not found"
+            exit 1
+          fi
+          echo "✅ Build output verified"
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

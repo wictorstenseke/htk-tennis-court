@@ -9,11 +9,11 @@ export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    }
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
   },
   optimizeDeps: {
-    include: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage']
+    include: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
   },
   build: {
     rollupOptions: {
@@ -21,9 +21,8 @@ export default defineConfig({
         manualChunks: {
           'vue-vendor': ['vue', 'vue-router', 'pinia'],
           'vueuse-vendor': ['@vueuse/core', '@vueuse/components'],
-        }
-      }
-    }
-  }
+        },
+      },
+    },
+  },
 })
-

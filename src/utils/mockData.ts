@@ -50,14 +50,12 @@ export const mockUserIds = [
  */
 export function getMockUsers(): UserProfileRead[] {
   const now = FirestoreTimestamp.now()
-  const oneMonthAgo = FirestoreTimestamp.fromMillis(
-    now.toMillis() - 30 * 24 * 60 * 60 * 1000,
-  )
+  const oneMonthAgo = FirestoreTimestamp.fromMillis(now.toMillis() - 30 * 24 * 60 * 60 * 1000)
 
   return mockUsers.map((user, index) => ({
     ...user,
     createdAt: FirestoreTimestamp.fromMillis(
-      oneMonthAgo.toMillis() + index * 5 * 24 * 60 * 60 * 1000,
+      oneMonthAgo.toMillis() + index * 5 * 24 * 60 * 60 * 1000
     ),
   }))
 }
@@ -67,7 +65,7 @@ export function getMockUsers(): UserProfileRead[] {
  */
 export function getMockBookings(): BookingRead[] {
   const now = new Date()
-  
+
   // Helper function to create a date with specific day offset and time
   function createDate(dayOffset: number, hours: number, minutes: number): Date {
     const date = new Date(now)
@@ -85,7 +83,7 @@ export function getMockBookings(): BookingRead[] {
       endTime: FirestoreTimestamp.fromDate(createDate(1, 11, 0)),
       status: 'booked',
       createdAt: FirestoreTimestamp.fromMillis(
-        FirestoreTimestamp.now().toMillis() - 2 * 24 * 60 * 60 * 1000,
+        FirestoreTimestamp.now().toMillis() - 2 * 24 * 60 * 60 * 1000
       ),
     },
     {
@@ -96,7 +94,7 @@ export function getMockBookings(): BookingRead[] {
       endTime: FirestoreTimestamp.fromDate(createDate(1, 15, 30)),
       status: 'booked',
       createdAt: FirestoreTimestamp.fromMillis(
-        FirestoreTimestamp.now().toMillis() - 1 * 24 * 60 * 60 * 1000,
+        FirestoreTimestamp.now().toMillis() - 1 * 24 * 60 * 60 * 1000
       ),
     },
     {
@@ -106,7 +104,7 @@ export function getMockBookings(): BookingRead[] {
       endTime: FirestoreTimestamp.fromDate(createDate(7, 10, 0)),
       status: 'booked',
       createdAt: FirestoreTimestamp.fromMillis(
-        FirestoreTimestamp.now().toMillis() - 3 * 24 * 60 * 60 * 1000,
+        FirestoreTimestamp.now().toMillis() - 3 * 24 * 60 * 60 * 1000
       ),
     },
     {
@@ -117,7 +115,7 @@ export function getMockBookings(): BookingRead[] {
       endTime: FirestoreTimestamp.fromDate(createDate(7, 17, 0)),
       status: 'booked',
       createdAt: FirestoreTimestamp.fromMillis(
-        FirestoreTimestamp.now().toMillis() - 5 * 24 * 60 * 60 * 1000,
+        FirestoreTimestamp.now().toMillis() - 5 * 24 * 60 * 60 * 1000
       ),
     },
     {
@@ -128,7 +126,7 @@ export function getMockBookings(): BookingRead[] {
       endTime: FirestoreTimestamp.fromDate(createDate(14, 12, 30)),
       status: 'cancelled',
       createdAt: FirestoreTimestamp.fromMillis(
-        FirestoreTimestamp.now().toMillis() - 7 * 24 * 60 * 60 * 1000,
+        FirestoreTimestamp.now().toMillis() - 7 * 24 * 60 * 60 * 1000
       ),
     },
   ]
@@ -179,4 +177,3 @@ export function formatBookingTime(timestamp: Timestamp): string {
 export function formatBookingDateTime(timestamp: Timestamp): string {
   return `${formatBookingDate(timestamp)} ${formatBookingTime(timestamp)}`
 }
-

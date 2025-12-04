@@ -1,18 +1,7 @@
 import { db } from '@/config/firebase'
-import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  serverTimestamp,
-  type DocumentSnapshot,
-} from 'firebase/firestore'
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import type { User } from 'firebase/auth'
-import type {
-  UserProfile,
-  UserProfileRead,
-  UserProfileUpdate,
-} from '@/types/user'
+import type { UserProfile, UserProfileRead, UserProfileUpdate } from '@/types/user'
 
 const USERS_COLLECTION = 'users'
 
@@ -21,19 +10,16 @@ const USERS_COLLECTION = 'users'
  * @param uid - Firebase Auth UID
  * @returns UserProfileRead or null if not found
  */
-export async function getCurrentUserProfile(
-  uid: string,
-): Promise<UserProfileRead | null> {
+export async function getCurrentUserProfile(uid: string): Promise<UserProfileRead | null> {
   try {
     const userDocRef = doc(db, USERS_COLLECTION, uid)
-    const userDocSnap: DocumentSnapshot<UserProfileRead> =
-      await getDoc(userDocRef)
+    const userDocSnap = await getDoc(userDocRef)
 
     if (!userDocSnap.exists()) {
       return null
     }
 
-    return userDocSnap.data()
+    return userDocSnap.data() as UserProfileRead
   } catch (error) {
     console.error('Error getting user profile:', error)
     throw error
@@ -46,9 +32,7 @@ export async function getCurrentUserProfile(
  * @param user - Firebase Auth User object
  * @returns Created UserProfileRead
  */
-export async function createUserProfileFromAuth(
-  user: User,
-): Promise<UserProfileRead> {
+export async function createUserProfileFromAuth(user: User): Promise<UserProfileRead> {
   try {
     const uid = user.uid
     const userDocRef = doc(db, USERS_COLLECTION, uid)
@@ -98,11 +82,10 @@ export async function createUserProfileFromAuth(
  */
 export async function updateUserProfile(
   uid: string,
-  partialProfile: UserProfileUpdate,
+  partialProfile: UserProfileUpdate
 ): Promise<void> {
   try {
     // Validate that only allowed fields are being updated
-    const allowedFields: (keyof UserProfileUpdate)[] = ['displayName', 'phone']
     const updateData: Partial<UserProfile> = {}
 
     if (partialProfile.displayName !== undefined) {
@@ -135,4 +118,3 @@ export async function updateUserProfile(
     throw error
   }
 }
-

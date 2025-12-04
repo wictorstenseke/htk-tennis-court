@@ -26,4 +26,3 @@ export interface UserProfileUpdate {
   displayName?: string
   phone?: string
 }
-
