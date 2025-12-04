@@ -5,9 +5,9 @@
         <h1 class="text-5xl font-bold mb-4">HTK Tennis</h1>
         <p class="text-xl text-base-content/70">Välkommen till HTK Tennis v2</p>
         <div class="mt-4">
-          <RouterLink v-if="!isAuthenticated" to="/auth" class="btn btn-primary">
+          <button v-if="!isAuthenticated" @click="openAuthModal" class="btn btn-primary">
             Logga in / Skapa konto
-          </RouterLink>
+          </button>
           <div v-else class="flex items-center justify-center gap-4">
             <span class="text-base-content/70">Inloggad som: {{ displayName || email }}</span>
             <button @click="handleSignOut" class="btn btn-outline btn-sm">Logga ut</button>
@@ -16,11 +16,11 @@
       </div>
 
       <!-- Bookings Section -->
-      <section v-if="isAuthenticated" class="mb-12">
+      <section class="mb-12">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-3xl font-bold">Bokningar</h2>
           <div class="flex gap-2">
-            <button class="btn btn-outline" @click="createMockBookings">
+            <button v-if="isAuthenticated" class="btn btn-outline" @click="createMockBookings">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-5 w-5 mr-2"
@@ -37,7 +37,7 @@
               </svg>
               Skapa testbokningar
             </button>
-            <button class="btn btn-primary" @click="openModal">
+            <button class="btn btn-primary" @click="handleBookBananClick">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-5 w-5 mr-2"
@@ -91,12 +91,16 @@
               <span class="text-sm font-medium">
                 {{ formatBookingDateTime(booking.startTime, booking.endTime) }}
               </span>
-              <span class="text-sm font-semibold text-primary ml-2">
+              <!-- Only show user name if authenticated -->
+              <span v-if="isAuthenticated" class="text-sm font-semibold text-primary ml-2">
                 {{ getUserDisplayName(booking.userId) }}
               </span>
             </div>
-            <!-- More menu - only show for user's own bookings -->
-            <div v-if="isMyBooking(booking)" class="dropdown dropdown-end flex items-center">
+            <!-- More menu - only show for user's own bookings when authenticated -->
+            <div
+              v-if="isAuthenticated && isMyBooking(booking)"
+              class="dropdown dropdown-end flex items-center"
+            >
               <div tabindex="0" role="button" class="btn btn-ghost btn-xs btn-circle">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -197,13 +201,16 @@
         @close="closeModal"
         @submit="handleBookingSubmit"
       />
+
+      <!-- Auth Modal -->
+      <AuthModal :is-open="isAuthModalOpen" @close="closeAuthModal" @success="handleAuthSuccess" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { Timestamp } from 'firebase/firestore'
 import { useUserStore } from '@/stores/user'
 import { useFirebaseAuth } from '@/composables/useFirebaseAuth'
@@ -217,6 +224,7 @@ import {
 import { formatBookingDateTime } from '@/utils/dateUtils'
 import { getUserDisplayName as fetchUserDisplayName } from '@/utils/userProfile'
 import BookingModal from '@/components/BookingModal.vue'
+import AuthModal from '@/components/AuthModal.vue'
 import type { UserProfileRead } from '@/types/user'
 import type { BookingRead } from '@/types/booking'
 
@@ -232,6 +240,7 @@ const email = computed(() => userStore.email)
 const mockUsers = ref<UserProfileRead[]>([])
 const mockBookings = ref<BookingRead[]>([])
 const isModalOpen = ref(false)
+const isAuthModalOpen = ref(false)
 const userDisplayNames = ref<Map<string, string>>(new Map())
 
 const bookedBookings = computed(() => {
@@ -243,75 +252,83 @@ const bookedBookings = computed(() => {
   const allBooked = [...realBooked, ...mockBooked]
 
   // Filter to only show future bookings (startTime > now)
-  return allBooked
+  const futureBookings = allBooked
     .filter(booking => booking.startTime.toMillis() > now)
     .sort((a, b) => a.startTime.toMillis() - b.startTime.toMillis())
+
+  return futureBookings
 })
 
 onMounted(() => {
   mockUsers.value = getMockUsers()
   mockBookings.value = getMockBookings()
-  if (isAuthenticated.value) {
-    loadFutureBookings()
-  }
+  // Ensure mock user names are loaded immediately
+  loadMockUserNames()
+  // Load bookings for all users (including non-authenticated)
+  loadFutureBookings()
 })
 
-// Watch for authentication changes and load bookings when user logs in
+// Watch for authentication changes and reload bookings when user logs in
 watch(isAuthenticated, newValue => {
   if (newValue) {
+    // Reload bookings and user display names when user logs in
     loadFutureBookings()
   }
 })
 
 async function loadFutureBookings() {
-  if (!isAuthenticated.value) return
-
   const now = Timestamp.now()
 
-  // Load all future bookings
+  // Try to load all future bookings from Firestore
+  // If it fails (e.g., permissions not deployed), store will handle gracefully
+  // and we'll still show mock bookings
   await bookingsStore.loadAllBookings({
     startDate: now,
     status: 'booked',
   })
 
-  // Load user display names for all bookings
-  await loadUserDisplayNames()
+  // Always load mock user names (they're local data, no Firestore needed)
+  await loadMockUserNames()
+
+  // Only try to fetch real user names from Firestore if authenticated
+  if (isAuthenticated.value) {
+    await loadRealUserNames()
+  }
 }
 
-async function loadUserDisplayNames() {
+async function loadMockUserNames() {
+  // Always load mock user names (they're local data, no Firestore needed)
+  // Merge with existing names (don't overwrite if real names were already loaded)
+  mockUserIds.forEach((userId, index) => {
+    if (!userDisplayNames.value.has(userId) && mockUsers.value[index]) {
+      userDisplayNames.value.set(userId, mockUsers.value[index].displayName)
+    }
+  })
+}
+
+async function loadRealUserNames() {
   const userIds = new Set<string>()
   bookedBookings.value.forEach(booking => {
     userIds.add(booking.userId)
   })
 
-  const names = new Map<string, string>()
-
-  // First, add all mock user names using the mockUserIds array
-  mockUsers.value.forEach((user, index) => {
-    if (mockUserIds[index]) {
-      names.set(mockUserIds[index], user.displayName)
-    }
-  })
-
-  // Then try to fetch real user names from Firestore for any IDs not in mock users
+  // Try to fetch real user names from Firestore for any IDs not in mock users
   await Promise.all(
     Array.from(userIds)
-      .filter(userId => !names.has(userId)) // Only fetch if not already in map
+      .filter(userId => !userDisplayNames.value.has(userId)) // Only fetch if not already in map
       .map(async userId => {
         try {
           const name = await fetchUserDisplayName(userId)
-          names.set(userId, name)
+          userDisplayNames.value.set(userId, name)
         } catch {
           // If fetch fails, try mock name as fallback
           const mockName = getMockUserDisplayName(userId)
           if (mockName !== 'Okänd användare') {
-            names.set(userId, mockName)
+            userDisplayNames.value.set(userId, mockName)
           }
         }
       })
   )
-
-  userDisplayNames.value = names
 }
 
 function getUserDisplayName(userId: string): string {
@@ -399,12 +416,36 @@ async function createMockBookings() {
   }
 }
 
+function handleBookBananClick() {
+  if (!isAuthenticated.value) {
+    // Show auth modal if not logged in
+    openAuthModal()
+  } else {
+    // Show booking modal if logged in
+    openModal()
+  }
+}
+
 function openModal() {
   isModalOpen.value = true
 }
 
 function closeModal() {
   isModalOpen.value = false
+}
+
+function openAuthModal() {
+  isAuthModalOpen.value = true
+}
+
+function closeAuthModal() {
+  isAuthModalOpen.value = false
+}
+
+function handleAuthSuccess() {
+  // Auth modal will close automatically, and auth state change will trigger booking reload
+  // Optionally reload bookings here if needed
+  loadFutureBookings()
 }
 
 async function handleBookingSubmit(data: { startTime: Timestamp; endTime: Timestamp }) {
@@ -434,7 +475,8 @@ async function handleBookingSubmit(data: { startTime: Timestamp; endTime: Timest
 async function handleSignOut() {
   try {
     await signOut()
-    router.push('/auth')
+    // Stay on home page after sign out
+    router.push('/')
   } catch (error) {
     console.error('Sign out error:', error)
   }
