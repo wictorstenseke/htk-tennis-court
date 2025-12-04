@@ -102,34 +102,6 @@ src/
 - ✅ Firestore initialized with region `europe-west1`
 - ✅ Firestore rules deployed
 
-### Next Steps
-
-1. **Activate Firestore API** (Required):
-   - Visit: https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=htk-tennis
-   - Click "Enable" to activate the Firestore API
-   - Wait 1-2 minutes for propagation
-
-2. **Create Firestore Database**:
-   - After API is enabled, visit: https://console.firebase.google.com/project/htk-tennis/firestore
-   - Click "Create database"
-   - Select "Start in production mode" (rules are already deployed)
-   - Choose region: `europe-west1` (Belgium)
-   - Click "Enable"
-
-3. **Environment Variables**:
-   - Copy `env.example` to `.env`
-   - Firebase config values are already set (see `env.example`)
-
-4. **Test the Setup**:
-   - Run `npm run dev`
-   - The app will automatically initialize Firestore on startup
-   - Check Firebase Console to verify database creation
-
-### Firebase Services
-- **Authentication**: Ready to use (`src/config/firebase.ts`)
-- **Firestore**: Configured, waiting for database creation
-- **Storage**: Ready to use (`src/config/firebase.ts`)
-
 ## License
 
 MIT
