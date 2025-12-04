@@ -250,7 +250,7 @@ jobs:
           
           # Largest files
           echo "largest_files<<EOF" >> $GITHUB_OUTPUT
-          find dist -type f -exec ls -lh {} \; | sort -k5 -hr | head -5 | awk '{print "- " $5 " - `" $9 "`"}' | sed 's|dist/||' >> $GITHUB_OUTPUT
+          find dist -type f -exec ls -lh {} \; | sort -k5 -hr | head -5 | awk '{print "- " $5 " - " $9}' | sed 's|dist/||' >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           
           # File count
@@ -262,7 +262,7 @@ jobs:
         with:
           name: coverage-report
           path: coverage/
-          if-no-files-found: ignore
+        continue-on-error: true
 
       - name: Get test coverage
         id: coverage
@@ -303,7 +303,7 @@ jobs:
             const sizeMb = parseInt('${{ steps.metrics.outputs.size_mb }}') || 0;
             const totalSize = '${{ steps.metrics.outputs.total_size }}';
             const fileCount = '${{ steps.metrics.outputs.file_count }}';
-            const largestFiles = `${{ steps.metrics.outputs.largest_files }}`;
+            const largestFiles = '${{ steps.metrics.outputs.largest_files }}';
             const coverageAvailable = '${{ steps.coverage.outputs.coverage_available }}' === 'true';
             const coveragePercentage = '${{ steps.coverage.outputs.coverage_percentage }}';
             
