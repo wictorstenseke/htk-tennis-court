@@ -306,4 +306,3 @@ export const useBookingsStore = defineStore('bookings', () => {
     clearCurrentBooking,
   }
 })
-
