@@ -3,20 +3,14 @@
     <div class="container mx-auto px-4 py-8">
       <div class="text-center mb-8">
         <h1 class="text-5xl font-bold mb-4">HTK Tennis</h1>
-        <p class="text-xl text-base-content/70">
-          Välkommen till HTK Tennis v2
-        </p>
+        <p class="text-xl text-base-content/70">Välkommen till HTK Tennis v2</p>
       </div>
 
       <!-- Mock Users Section -->
       <section class="mb-12">
         <h2 class="text-3xl font-bold mb-6">Användare (Mock Data)</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div
-            v-for="(user, index) in mockUsers"
-            :key="index"
-            class="card bg-base-200 shadow-lg"
-          >
+          <div v-for="(user, index) in mockUsers" :key="index" class="card bg-base-200 shadow-lg">
             <div class="card-body">
               <h3 class="card-title text-lg">{{ user.displayName }}</h3>
               <div class="space-y-1 text-sm">
@@ -38,11 +32,7 @@
       <section>
         <h2 class="text-3xl font-bold mb-6">Bokningar (Mock Data)</h2>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div
-            v-for="booking in mockBookings"
-            :key="booking.id"
-            class="card bg-base-200 shadow-lg"
-          >
+          <div v-for="booking in mockBookings" :key="booking.id" class="card bg-base-200 shadow-lg">
             <div class="card-body">
               <div class="flex items-start justify-between mb-3">
                 <div>
@@ -64,9 +54,9 @@
                   {{ booking.status === 'booked' ? 'Bokad' : 'Avbokad' }}
                 </span>
               </div>
-              
+
               <div class="divider my-2"></div>
-              
+
               <div class="space-y-2 text-sm">
                 <p>
                   <span class="font-semibold">Spelare:</span>
@@ -76,9 +66,7 @@
                   <span class="font-semibold">Motståndare:</span>
                   {{ getUserDisplayName(booking.opponentUserId) }}
                 </p>
-                <p v-else class="text-base-content/60 italic">
-                  Ingen motståndare vald
-                </p>
+                <p v-else class="text-base-content/60 italic">Ingen motståndare vald</p>
               </div>
             </div>
           </div>
@@ -96,7 +84,6 @@ import {
   getUserDisplayName,
   formatBookingDate,
   formatBookingTime,
-  formatBookingDateTime,
 } from '@/utils/mockData'
 import type { UserProfileRead } from '@/types/user'
 import type { BookingRead } from '@/types/booking'
@@ -109,4 +96,3 @@ onMounted(() => {
   mockBookings.value = getMockBookings()
 })
 </script>
-

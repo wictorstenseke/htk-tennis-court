@@ -9,4 +9,3 @@ import { useAuth } from '@/composables/useAuth'
 // Initialize auth state listener
 useAuth()
 </script>
-

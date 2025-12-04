@@ -19,4 +19,3 @@ describe('ExampleComponent', () => {
     expect(wrapper.text()).toContain('Custom Message')
   })
 })
-

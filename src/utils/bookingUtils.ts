@@ -9,26 +9,18 @@ import {
   deleteDoc,
   query,
   where,
-  orderBy,
   serverTimestamp,
   type DocumentSnapshot,
   type QueryConstraint,
 } from 'firebase/firestore'
-import type {
-  Booking,
-  BookingRead,
-  BookingCreate,
-  BookingUpdate,
-} from '@/types/booking'
+import type { Booking, BookingRead, BookingCreate, BookingUpdate } from '@/types/booking'
 
 const BOOKINGS_COLLECTION = 'bookings'
 
 /**
  * Convert a Firestore document snapshot to BookingRead
  */
-function snapshotToBookingRead(
-  docSnap: DocumentSnapshot,
-): BookingRead | null {
+function snapshotToBookingRead(docSnap: DocumentSnapshot): BookingRead | null {
   if (!docSnap.exists()) {
     return null
   }
@@ -50,9 +42,7 @@ function snapshotToBookingRead(
  * @param bookingId - Booking document ID
  * @returns BookingRead or null if not found
  */
-export async function getBookingById(
-  bookingId: string,
-): Promise<BookingRead | null> {
+export async function getBookingById(bookingId: string): Promise<BookingRead | null> {
   try {
     const bookingDocRef = doc(db, BOOKINGS_COLLECTION, bookingId)
     const bookingDocSnap = await getDoc(bookingDocRef)
@@ -68,16 +58,14 @@ export async function getBookingById(
  * @param constraints - Optional query constraints (e.g., date range, status)
  * @returns Array of BookingRead
  */
-export async function getAllBookings(
-  constraints: QueryConstraint[] = [],
-): Promise<BookingRead[]> {
+export async function getAllBookings(constraints: QueryConstraint[] = []): Promise<BookingRead[]> {
   try {
     const bookingsRef = collection(db, BOOKINGS_COLLECTION)
     const q = query(bookingsRef, ...constraints)
     const querySnapshot = await getDocs(q)
 
     return querySnapshot.docs
-      .map((docSnap) => snapshotToBookingRead(docSnap))
+      .map(docSnap => snapshotToBookingRead(docSnap))
       .filter((booking): booking is BookingRead => booking !== null)
   } catch (error) {
     console.error('Error getting all bookings:', error)
@@ -93,19 +81,15 @@ export async function getAllBookings(
  */
 export async function getUserBookings(
   userId: string,
-  constraints: QueryConstraint[] = [],
+  constraints: QueryConstraint[] = []
 ): Promise<BookingRead[]> {
   try {
     const bookingsRef = collection(db, BOOKINGS_COLLECTION)
-    const q = query(
-      bookingsRef,
-      where('userId', '==', userId),
-      ...constraints,
-    )
+    const q = query(bookingsRef, where('userId', '==', userId), ...constraints)
     const querySnapshot = await getDocs(q)
 
     return querySnapshot.docs
-      .map((docSnap) => snapshotToBookingRead(docSnap))
+      .map(docSnap => snapshotToBookingRead(docSnap))
       .filter((booking): booking is BookingRead => booking !== null)
   } catch (error) {
     console.error('Error getting user bookings:', error)
@@ -121,24 +105,16 @@ export async function getUserBookings(
  */
 export async function getInvolvedBookings(
   userId: string,
-  constraints: QueryConstraint[] = [],
+  constraints: QueryConstraint[] = []
 ): Promise<BookingRead[]> {
   try {
     const bookingsRef = collection(db, BOOKINGS_COLLECTION)
-    
+
     // Query for bookings where user is the creator
-    const creatorQuery = query(
-      bookingsRef,
-      where('userId', '==', userId),
-      ...constraints,
-    )
-    
+    const creatorQuery = query(bookingsRef, where('userId', '==', userId), ...constraints)
+
     // Query for bookings where user is the opponent
-    const opponentQuery = query(
-      bookingsRef,
-      where('opponentUserId', '==', userId),
-      ...constraints,
-    )
+    const opponentQuery = query(bookingsRef, where('opponentUserId', '==', userId), ...constraints)
 
     const [creatorSnapshot, opponentSnapshot] = await Promise.all([
       getDocs(creatorQuery),
@@ -147,15 +123,15 @@ export async function getInvolvedBookings(
 
     // Combine and deduplicate results
     const allBookings = new Map<string, BookingRead>()
-    
-    creatorSnapshot.docs.forEach((docSnap) => {
+
+    creatorSnapshot.docs.forEach(docSnap => {
       const booking = snapshotToBookingRead(docSnap)
       if (booking) {
         allBookings.set(booking.id, booking)
       }
     })
-    
-    opponentSnapshot.docs.forEach((docSnap) => {
+
+    opponentSnapshot.docs.forEach(docSnap => {
       const booking = snapshotToBookingRead(docSnap)
       if (booking) {
         allBookings.set(booking.id, booking)
@@ -174,9 +150,7 @@ export async function getInvolvedBookings(
  * @param bookingData - BookingCreate data
  * @returns Created BookingRead
  */
-export async function createBooking(
-  bookingData: BookingCreate,
-): Promise<BookingRead> {
+export async function createBooking(bookingData: BookingCreate): Promise<BookingRead> {
   try {
     // Validate required fields
     if (!bookingData.userId.trim()) {
@@ -193,7 +167,7 @@ export async function createBooking(
     }
 
     const bookingsRef = collection(db, BOOKINGS_COLLECTION)
-    
+
     const newBooking: Booking = {
       userId: bookingData.userId,
       opponentUserId: bookingData.opponentUserId,
@@ -223,13 +197,9 @@ export async function createBooking(
  * @param bookingId - Booking document ID
  * @param updates - BookingUpdate data
  */
-export async function updateBooking(
-  bookingId: string,
-  updates: BookingUpdate,
-): Promise<void> {
+export async function updateBooking(bookingId: string, updates: BookingUpdate): Promise<void> {
   try {
     // Validate that only allowed fields are being updated
-    const allowedFields: (keyof BookingUpdate)[] = ['status', 'opponentUserId']
     const updateData: Partial<Booking> = {}
 
     if (updates.status !== undefined) {
@@ -278,7 +248,7 @@ export async function cancelBooking(bookingId: string): Promise<void> {
 export async function deleteBooking(bookingId: string): Promise<void> {
   try {
     const bookingDocRef = doc(db, BOOKINGS_COLLECTION, bookingId)
-    
+
     // Check if booking exists before deleting
     const existingBooking = await getBookingById(bookingId)
     if (!existingBooking) {
@@ -291,4 +261,3 @@ export async function deleteBooking(bookingId: string): Promise<void> {
     throw error
   }
 }
-
