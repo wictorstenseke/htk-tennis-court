@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'
+import { ref } from 'vue'
 import HomeView from '../HomeView.vue'
 import * as mockData from '@/utils/mockData'
 import { createMockUserProfile, createMockBooking } from '@/test-utils/firebase-mocks'
@@ -43,6 +44,24 @@ vi.mock('@/utils/dateUtils', () => ({
 
 vi.mock('@/utils/userProfile', () => ({
   getUserDisplayName: vi.fn(() => Promise.resolve('Test User')),
+}))
+
+vi.mock('@/composables/useAppSettings', () => ({
+  useAppSettings: vi.fn(() => ({
+    settings: ref({ bookingsEnabled: true }),
+    bookingsDisabledMessage: ref(null),
+    loadSettings: vi.fn().mockResolvedValue(undefined),
+  })),
+}))
+
+vi.mock('@/composables/useAnnouncements', () => ({
+  useAnnouncements: vi.fn(() => ({
+    isEnabled: ref(false),
+    title: ref(''),
+    body: ref(''),
+    links: ref([]),
+    loadAnnouncement: vi.fn().mockResolvedValue(undefined),
+  })),
 }))
 
 describe('HomeView', () => {
@@ -113,6 +132,7 @@ describe('HomeView', () => {
       },
     })
 
+    await flushPromises()
     await wrapper.vm.$nextTick()
 
     expect(mockData.getMockUsers).toHaveBeenCalled()
@@ -137,6 +157,7 @@ describe('HomeView', () => {
       },
     })
 
+    await flushPromises()
     await wrapper.vm.$nextTick()
 
     expect(mockData.getMockBookings).toHaveBeenCalled()
@@ -164,11 +185,14 @@ describe('HomeView', () => {
       },
     })
 
+    await flushPromises()
     await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick() // Wait for another tick to ensure DOM updates
 
-    expect(wrapper.text()).toContain('John Doe')
-    expect(wrapper.text()).toContain('john@example.com')
-    expect(wrapper.text()).toContain('+1234567890')
+    const text = wrapper.text()
+    expect(text).toContain('John Doe')
+    expect(text).toContain('john@example.com')
+    expect(text).toContain('+1234567890')
   })
 
   it('should display booking status badges correctly', async () => {
