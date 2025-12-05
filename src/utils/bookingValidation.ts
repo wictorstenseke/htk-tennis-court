@@ -39,15 +39,19 @@ function timeRangesOverlap(
  * @param newStartTime - Start time of new booking
  * @param newEndTime - End time of new booking
  * @param existingBookings - Array of existing bookings (only "booked" status)
+ * @param excludeBookingId - Optional booking ID to exclude from overlap check (useful when editing)
  * @returns true if there's an overlap
  */
 export function hasBookingOverlap(
   newStartTime: Timestamp,
   newEndTime: Timestamp,
-  existingBookings: BookingRead[]
+  existingBookings: BookingRead[],
+  excludeBookingId?: string
 ): boolean {
-  // Filter only booked bookings
-  const bookedBookings = existingBookings.filter(b => b.status === 'booked')
+  // Filter only booked bookings, excluding the booking being edited
+  const bookedBookings = existingBookings.filter(
+    b => b.status === 'booked' && b.id !== excludeBookingId
+  )
 
   return bookedBookings.some(booking =>
     timeRangesOverlap(newStartTime, newEndTime, booking.startTime, booking.endTime)

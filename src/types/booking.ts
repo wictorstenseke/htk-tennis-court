@@ -47,9 +47,11 @@ export interface BookingCreate {
 
 /**
  * BookingUpdate interface for updating a booking
- * Only allows updating status and opponentUserId
+ * Allows updating status, opponentUserId, startTime, and endTime
  */
 export interface BookingUpdate {
   status?: BookingStatus
   opponentUserId?: string
+  startTime?: Timestamp
+  endTime?: Timestamp
 }

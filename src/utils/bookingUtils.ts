@@ -197,7 +197,7 @@ export async function createBooking(bookingData: BookingCreate): Promise<Booking
 }
 
 /**
- * Update a booking (only status and opponentUserId)
+ * Update a booking (status, opponentUserId, startTime, and endTime)
  * @param bookingId - Booking document ID
  * @param updates - BookingUpdate data
  */
@@ -217,17 +217,38 @@ export async function updateBooking(bookingId: string, updates: BookingUpdate): 
       updateData.opponentUserId = updates.opponentUserId || undefined
     }
 
-    // Ensure we have at least one field to update
-    if (Object.keys(updateData).length === 0) {
-      throw new Error('No valid fields to update')
+    if (updates.startTime !== undefined) {
+      updateData.startTime = updates.startTime
     }
 
-    const bookingDocRef = doc(db, BOOKINGS_COLLECTION, bookingId)
+    if (updates.endTime !== undefined) {
+      updateData.endTime = updates.endTime
+    }
 
-    // Check if booking exists before updating
+    // Validate time range if both startTime and endTime are being updated
+    if (updates.startTime !== undefined && updates.endTime !== undefined) {
+      if (updates.startTime >= updates.endTime) {
+        throw new Error('Start time must be before end time')
+      }
+    }
+
+    // If only one time is being updated, validate against existing booking
+    const bookingDocRef = doc(db, BOOKINGS_COLLECTION, bookingId)
     const existingBooking = await getBookingById(bookingId)
     if (!existingBooking) {
       throw new Error('Booking does not exist')
+    }
+
+    // Validate time range if only one time is updated
+    const finalStartTime = updates.startTime ?? existingBooking.startTime
+    const finalEndTime = updates.endTime ?? existingBooking.endTime
+    if (finalStartTime >= finalEndTime) {
+      throw new Error('Start time must be before end time')
+    }
+
+    // Ensure we have at least one field to update
+    if (Object.keys(updateData).length === 0) {
+      throw new Error('No valid fields to update')
     }
 
     await updateDoc(bookingDocRef, updateData)
