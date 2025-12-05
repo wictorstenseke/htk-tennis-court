@@ -1,9 +1,10 @@
 <template>
-  <div class="dropdown dropdown-end" v-if="displayName">
+  <div class="dropdown dropdown-end" v-if="displayName" ref="dropdownContainer">
     <div
       tabindex="0"
       role="button"
       class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-base-200 transition-colors cursor-pointer"
+      @click="toggleDropdown"
     >
       <span class="font-medium">{{ displayName }}</span>
       <div class="avatar">
@@ -13,11 +14,12 @@
       </div>
     </div>
     <ul
+      v-show="isOpen"
       tabindex="0"
       class="dropdown-content menu bg-base-200 rounded-box z-[1] w-52 p-2 shadow-lg mt-2"
     >
       <li>
-        <RouterLink to="/profile" class="flex items-center gap-2">
+        <RouterLink to="/profile" class="flex items-center gap-2" @click="closeDropdown">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-5 w-5"
@@ -36,7 +38,7 @@
         </RouterLink>
       </li>
       <li v-if="isAdmin">
-        <RouterLink to="/admin" class="flex items-center gap-2">
+        <RouterLink to="/admin" class="flex items-center gap-2" @click="closeDropdown">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-5 w-5"
@@ -84,8 +86,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
+import { onClickOutside } from '@vueuse/core'
 import { useUserStore } from '@/stores/user'
 import { useFirebaseAuth } from '@/composables/useFirebaseAuth'
 
@@ -93,11 +96,28 @@ const userStore = useUserStore()
 const router = useRouter()
 const { signOut } = useFirebaseAuth()
 
+const dropdownContainer = ref<HTMLElement | null>(null)
+const isOpen = ref(false)
+
 const displayName = computed(() => userStore.displayName)
 const avatarUrl = computed(() => userStore.avatarUrl)
 const isAdmin = computed(() => userStore.isAdmin)
 
+// Close dropdown when clicking outside
+onClickOutside(dropdownContainer, () => {
+  isOpen.value = false
+})
+
+function toggleDropdown() {
+  isOpen.value = !isOpen.value
+}
+
+function closeDropdown() {
+  isOpen.value = false
+}
+
 async function handleSignOut() {
+  closeDropdown()
   try {
     await signOut()
     router.push('/')

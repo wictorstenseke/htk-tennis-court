@@ -1,11 +1,6 @@
 <template>
   <div class="min-h-screen bg-base-100">
     <div class="container mx-auto px-4 py-8">
-      <!-- User dropdown in top right -->
-      <div class="flex justify-end mb-4">
-        <UserDropdown v-if="isAuthenticated" />
-      </div>
-
       <div class="text-center mb-8">
         <h1 class="text-5xl font-bold mb-4">HTK Tennis</h1>
         <p class="text-xl text-base-content/70">Välkommen till HTK Tennis v2</p>
@@ -303,7 +298,6 @@ import { formatBookingDateTime } from '@/utils/dateUtils'
 import { getUserDisplayName as fetchUserDisplayName } from '@/utils/userProfile'
 import BookingModal from '@/components/BookingModal.vue'
 import AuthModal from '@/components/AuthModal.vue'
-import UserDropdown from '@/components/UserDropdown.vue'
 import type { UserProfileRead } from '@/types/user'
 import type { BookingRead } from '@/types/booking'
 

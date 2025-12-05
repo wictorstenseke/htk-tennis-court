@@ -13,6 +13,11 @@ const routes: RouteRecordRaw[] = [
     redirect: '/',
   },
   {
+    path: '/tennisstege',
+    name: 'tennisstege',
+    component: () => import('@/views/TennisstegeView.vue'),
+  },
+  {
     path: '/profile',
     name: 'profile',
     component: () => import('@/views/ProfileView.vue'),

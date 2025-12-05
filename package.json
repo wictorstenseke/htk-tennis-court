@@ -19,6 +19,7 @@
     "ci": "npm run lint:check && npm run type-check && npm run test:coverage && npm run build"
   },
   "dependencies": {
+    "@vueuse/core": "^14.1.0",
     "crypto-js": "^4.2.0",
     "firebase": "^11.1.0",
     "pinia": "^2.2.7",

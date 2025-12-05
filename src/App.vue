@@ -1,10 +1,10 @@
 <template>
-  <RouterView />
+  <AppLayout />
 </template>
 
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
+import AppLayout from '@/components/AppLayout.vue'
 
 // Initialize auth state listener
 useAuth()

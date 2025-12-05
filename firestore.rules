@@ -40,31 +40,35 @@ service cloud.firestore {
         && (!('phone' in request.resource.data) || request.resource.data.phone is string)
         && (!('avatarUrl' in request.resource.data) || request.resource.data.avatarUrl is string);
       
-      // Users can update their own profile (only displayName and phone)
+      // Users can update their own profile (displayName, phone, and sidebarState)
       // SuperUsers can also update role field (for any user)
       allow update: if request.auth != null && (
-        // Case 1: Regular users updating their own displayName and/or phone (no role changes)
+        // Case 1: Regular users updating their own displayName, phone, and/or sidebarState (no role changes)
         (request.auth.uid == userId
           && !('role' in request.resource.data.diff(resource.data).affectedKeys())
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'phone'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'phone', 'sidebarState'])
           && (!('displayName' in request.resource.data.diff(resource.data).affectedKeys()) 
               || (request.resource.data.displayName is string && request.resource.data.displayName.size() > 0))
           && (!('phone' in request.resource.data.diff(resource.data).affectedKeys()) 
-              || request.resource.data.phone is string))
+              || request.resource.data.phone is string)
+          && (!('sidebarState' in request.resource.data.diff(resource.data).affectedKeys())
+              || request.resource.data.sidebarState in ['expanded', 'collapsed', 'hover']))
         ||
         // Case 2: SuperUsers updating role field (for any user, including themselves)
         (isSuperUser()
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role'])
           && request.resource.data.role in ['superuser', 'admin', 'user'])
         ||
-        // Case 3: SuperUsers updating their own profile with displayName, phone, and/or role
+        // Case 3: SuperUsers updating their own profile with displayName, phone, sidebarState, and/or role
         (isSuperUser()
           && request.auth.uid == userId
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'phone', 'role'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'phone', 'sidebarState', 'role'])
           && (!('displayName' in request.resource.data.diff(resource.data).affectedKeys()) 
               || (request.resource.data.displayName is string && request.resource.data.displayName.size() > 0))
           && (!('phone' in request.resource.data.diff(resource.data).affectedKeys()) 
               || request.resource.data.phone is string)
+          && (!('sidebarState' in request.resource.data.diff(resource.data).affectedKeys())
+              || request.resource.data.sidebarState in ['expanded', 'collapsed', 'hover'])
           && (!('role' in request.resource.data.diff(resource.data).affectedKeys())
               || request.resource.data.role in ['superuser', 'admin', 'user']))
       );
