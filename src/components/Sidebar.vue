@@ -356,13 +356,13 @@ function handleMouseLeave() {
 }
 </script>
 
-<style scoped>
+<style scoped lang="postcss">
 .menu li {
   @apply p-0 m-0;
 }
 
 .menu li > a,
-.menu li > div > div[role="button"] {
+.menu li > div > div[role='button'] {
   @apply transition-colors hover:bg-base-300;
 }
 </style>
