@@ -51,16 +51,12 @@
 
       <!-- Navigation Menu -->
       <nav class="flex-1 overflow-y-auto py-4">
-        <ul class="menu py-0 px-2 flex flex-col gap-2">
+        <ul class="menu py-0 flex flex-col gap-2">
           <!-- Admin Page (only for admin users) -->
           <li v-if="isAdmin">
             <RouterLink
               to="/admin"
-              class="flex items-center gap-3 py-2 rounded-lg"
-              :class="{
-                'justify-center px-2': isCollapsed && !isHovering,
-                'px-4': !isCollapsed || isHovering,
-              }"
+              class="flex items-center gap-3 py-2 rounded-lg px-3"
               active-class="!bg-primary !text-primary-content"
             >
               <svg
@@ -87,11 +83,7 @@
           <li>
             <RouterLink
               to="/"
-              class="flex items-center gap-3 py-2 rounded-lg"
-              :class="{
-                'justify-center px-2': isCollapsed && !isHovering,
-                'px-4': !isCollapsed || isHovering,
-              }"
+              class="flex items-center gap-3 py-2 rounded-lg px-3"
               active-class="!bg-primary !text-primary-content"
             >
               <svg
@@ -118,11 +110,7 @@
           <li>
             <RouterLink
               to="/tennisstege"
-              class="flex items-center gap-3 py-2 rounded-lg opacity-50 cursor-not-allowed"
-              :class="{
-                'justify-center px-2': isCollapsed && !isHovering,
-                'px-4': !isCollapsed || isHovering,
-              }"
+              class="flex items-center gap-3 py-2 rounded-lg px-3 opacity-50 cursor-not-allowed"
               active-class="!bg-primary !text-primary-content"
               @click.prevent
             >
@@ -150,11 +138,7 @@
           <li v-if="isAuthenticated">
             <RouterLink
               to="/profile"
-              class="flex items-center gap-3 py-2 rounded-lg"
-              :class="{
-                'justify-center px-2': isCollapsed && !isHovering,
-                'px-4': !isCollapsed || isHovering,
-              }"
+              class="flex items-center gap-3 py-2 rounded-lg px-3"
               active-class="!bg-primary !text-primary-content"
             >
               <svg
@@ -187,16 +171,13 @@
 
       <!-- Sidebar Control Menu -->
       <div v-if="isAuthenticated" class="border-t border-base-300 py-2">
-        <ul class="menu py-0 px-2">
+        <ul class="menu py-0">
           <li class="dropdown dropdown-top">
             <div
+              ref="dropdownTrigger"
               tabindex="0"
               role="button"
-              class="flex items-center gap-3 py-2 rounded-lg cursor-pointer w-full"
-              :class="{
-                'justify-center px-2': isCollapsed && !isHovering,
-                'px-4': !isCollapsed || isHovering,
-              }"
+              class="flex items-center gap-3 py-2 rounded-lg px-3 cursor-pointer w-full"
               title="Sidebar control"
             >
               <svg
@@ -213,9 +194,6 @@
                   d="M10.5 6h9M10.5 12h9m-9 6h9M4.5 6h1.5m-1.5 6h1.5m-1.5 6h1.5"
                 />
               </svg>
-              <span v-if="!isCollapsed || isHovering" class="whitespace-nowrap transition-opacity">
-                Sidebar
-              </span>
             </div>
             <ul
               tabindex="0"
@@ -278,6 +256,7 @@ const isAuthenticated = computed(() => userStore.isAuthenticated)
 const sidebarState = ref<SidebarState>('expanded')
 const isCollapsed = ref(false)
 const isHovering = ref(false)
+const dropdownTrigger = ref<HTMLElement | null>(null)
 
 const emit = defineEmits<{
   widthChange: [width: number]
@@ -321,6 +300,11 @@ function applySidebarState() {
 async function handleStateChange(newState: SidebarState) {
   sidebarState.value = newState
   applySidebarState()
+
+  // Close dropdown by removing focus from active element
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur()
+  }
 
   // Save to user profile if authenticated
   if (isAuthenticated.value && userStore.currentUser) {
@@ -373,6 +357,10 @@ function handleMouseLeave() {
 </script>
 
 <style scoped>
+.menu li {
+  @apply p-0 m-0;
+}
+
 .menu li > a,
 .menu li > div > div[role="button"] {
   @apply transition-colors hover:bg-base-300;
