@@ -16,9 +16,58 @@
         </div>
       </div>
 
+      <!-- Announcement Section -->
+      <section v-if="announcementEnabled && announcementTitle" class="mb-12">
+        <div class="alert alert-info">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="stroke-current shrink-0 h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <div class="flex-1">
+            <h3 class="font-bold text-lg mb-2">{{ announcementTitle }}</h3>
+            <p class="whitespace-pre-line">{{ announcementBody }}</p>
+            <div v-if="announcementLinks.length > 0" class="flex flex-wrap gap-2 mt-4">
+              <a
+                v-for="(link, index) in announcementLinks"
+                :key="index"
+                :href="link.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-sm btn-outline"
+              >
+                {{ link.label }}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 ml-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Bookings Section -->
       <section class="mb-12">
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
           <h2 class="text-3xl font-bold">Bokningar</h2>
           <div class="flex gap-2">
             <button v-if="isAuthenticated" class="btn btn-outline" @click="createMockBookings">
@@ -38,7 +87,11 @@
               </svg>
               Skapa testbokningar
             </button>
-            <button class="btn btn-primary" @click="handleBookBananClick">
+            <button
+              v-if="settings && settings.bookingsEnabled !== false"
+              class="btn btn-primary"
+              @click="handleBookBananClick"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-5 w-5 mr-2"
@@ -56,6 +109,24 @@
               Boka banan
             </button>
           </div>
+        </div>
+
+        <!-- Bookings disabled message -->
+        <div v-if="settings && settings.bookingsEnabled === false" class="alert alert-info mb-6">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="stroke-current shrink-0 h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <span>{{ disabledMessage }}</span>
         </div>
 
         <!-- Loading state -->
@@ -88,12 +159,15 @@
             :key="booking.id"
             class="flex items-center justify-between py-2 px-4 bg-base-200 rounded-lg"
           >
-            <div class="flex-1">
+            <div class="flex-1 flex flex-wrap items-center gap-x-2">
               <span class="text-sm font-medium">
                 {{ formatBookingDateTime(booking.startTime, booking.endTime) }}
               </span>
               <!-- Only show user name if authenticated -->
-              <span v-if="isAuthenticated" class="text-sm font-semibold text-primary ml-2">
+              <span
+                v-if="isAuthenticated"
+                class="text-sm font-semibold text-primary whitespace-nowrap"
+              >
                 {{ getUserDisplayName(booking.userId) }}
               </span>
             </div>
@@ -181,6 +255,7 @@
                 <th>Namn</th>
                 <th>E-post</th>
                 <th>Telefon</th>
+                <th>Roll</th>
               </tr>
             </thead>
             <tbody>
@@ -188,6 +263,7 @@
                 <td>{{ user.displayName }}</td>
                 <td>{{ user.email }}</td>
                 <td>{{ user.phone || '-' }}</td>
+                <td>{{ user.role || 'user' }}</td>
               </tr>
             </tbody>
           </table>
@@ -211,10 +287,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { Timestamp } from 'firebase/firestore'
 import { useUserStore } from '@/stores/user'
 import { useBookings } from '@/composables/useBookings'
+import { useAppSettings } from '@/composables/useAppSettings'
+import { useAnnouncements } from '@/composables/useAnnouncements'
 import {
   getMockUsers,
   getMockBookings,
@@ -231,8 +309,24 @@ import type { BookingRead } from '@/types/booking'
 
 const userStore = useUserStore()
 const { bookingsStore, currentUserId } = useBookings()
+const { settings, bookingsDisabledMessage, loadSettings } = useAppSettings()
+const {
+  isEnabled: announcementEnabled,
+  title: announcementTitle,
+  body: announcementBody,
+  links: announcementLinks,
+  loadAnnouncement,
+} = useAnnouncements()
 
 const isAuthenticated = computed(() => userStore.isAuthenticated)
+
+// Computed message to show when bookings are disabled
+const disabledMessage = computed(() => {
+  return (
+    bookingsDisabledMessage.value ||
+    'Bokningar är för närvarande stängda för säsong eller underhåll.'
+  )
+})
 
 const mockUsers = ref<UserProfileRead[]>([])
 const mockBookings = ref<BookingRead[]>([])
@@ -257,21 +351,53 @@ const bookedBookings = computed(() => {
   return futureBookings
 })
 
-onMounted(() => {
-  mockUsers.value = getMockUsers()
-  mockBookings.value = getMockBookings()
-  // Ensure mock user names are loaded immediately
-  loadMockUserNames()
-  // Load bookings for all users (including non-authenticated)
-  loadFutureBookings()
-})
-
 // Watch for authentication changes and reload bookings when user logs in
 watch(isAuthenticated, newValue => {
   if (newValue) {
     // Reload bookings and user display names when user logs in
     loadFutureBookings()
   }
+})
+
+// Watch for settings changes to ensure reactivity
+watch(
+  () => settings.value,
+  () => {
+    // Settings updated, ensure modal is closed if bookings are disabled
+    if (settings.value && settings.value.bookingsEnabled === false && isModalOpen.value) {
+      closeModal()
+    }
+  },
+  { deep: true }
+)
+
+// Reload settings when page becomes visible (in case settings changed in another tab)
+function handleVisibilityChange() {
+  if (!document.hidden) {
+    loadSettings()
+  }
+}
+
+onMounted(async () => {
+  // Load app settings to check if bookings are enabled
+  await loadSettings()
+  // Load announcement
+  await loadAnnouncement()
+
+  mockUsers.value = getMockUsers()
+  mockBookings.value = getMockBookings()
+  // Ensure mock user names are loaded immediately
+  loadMockUserNames()
+  // Load bookings for all users (including non-authenticated)
+  loadFutureBookings()
+
+  // Listen for visibility changes to reload settings
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+})
+
+// Cleanup listener on unmount
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 
 async function loadFutureBookings() {
@@ -413,6 +539,11 @@ async function createMockBookings() {
 }
 
 function handleBookBananClick() {
+  // Check if bookings are disabled
+  if (settings.value && settings.value.bookingsEnabled === false) {
+    return
+  }
+
   if (!isAuthenticated.value) {
     // Show auth modal if not logged in
     openAuthModal()
@@ -423,6 +554,10 @@ function handleBookBananClick() {
 }
 
 function openModal() {
+  // Don't open modal if bookings are disabled
+  if (settings.value && settings.value.bookingsEnabled === false) {
+    return
+  }
   isModalOpen.value = true
 }
 
@@ -450,6 +585,13 @@ async function handleBookingSubmit(data: {
   endTime: Timestamp
   bookingId?: string
 }) {
+  // Double-check bookings are enabled before submitting
+  if (settings.value && settings.value.bookingsEnabled === false) {
+    console.error('Bookings are disabled')
+    closeModal()
+    return
+  }
+
   if (!currentUserId.value) {
     console.error('User not authenticated')
     return

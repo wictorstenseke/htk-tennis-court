@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { User } from 'firebase/auth'
-import type { UserProfileRead } from '@/types/user'
+import type { UserProfileRead, UserRole } from '@/types/user'
 import {
   getCurrentUserProfile,
   createUserProfileFromAuth,
@@ -22,6 +22,12 @@ export const useUserStore = defineStore('user', () => {
   const displayName = computed(() => userProfile.value?.displayName ?? '')
   const email = computed(() => userProfile.value?.email ?? currentUser.value?.email ?? '')
   const phone = computed(() => userProfile.value?.phone ?? '')
+  const role = computed<UserRole>(() => userProfile.value?.role ?? 'user')
+  const isAdmin = computed(() => {
+    const userRole = role.value
+    return userRole === 'admin' || userRole === 'superuser'
+  })
+  const isSuperuser = computed(() => role.value === 'superuser')
   const avatarUrl = computed(() => {
     if (userProfile.value?.avatarUrl) {
       return userProfile.value.avatarUrl
@@ -110,6 +116,9 @@ export const useUserStore = defineStore('user', () => {
     displayName,
     email,
     phone,
+    role,
+    isAdmin,
+    isSuperuser,
     avatarUrl,
     // Actions
     setUser,

@@ -72,6 +72,7 @@
 import { ref, computed, watch } from 'vue'
 import { Timestamp } from 'firebase/firestore'
 import { hasBookingOverlap, validateBookingTimeRange } from '@/utils/bookingValidation'
+import { useAppSettings } from '@/composables/useAppSettings'
 import type { BookingRead } from '@/types/booking'
 
 interface Props {
@@ -87,6 +88,8 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+
+const { settings } = useAppSettings()
 
 const modalRef = ref<HTMLDialogElement | null>(null)
 const selectedDate = ref('')
@@ -144,6 +147,13 @@ async function handleSubmit() {
   isSubmitting.value = true
 
   try {
+    // Check if bookings are enabled
+    if (!settings.value || settings.value.bookingsEnabled === false) {
+      errorMessage.value = 'Bokningar är för närvarande avstängda.'
+      isSubmitting.value = false
+      return
+    }
+
     // Validate inputs
     if (!selectedDate.value || !startTime.value || !endTime.value) {
       errorMessage.value = 'Vänligen fyll i alla fält'

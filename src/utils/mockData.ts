@@ -11,26 +11,31 @@ export const mockUsers: Omit<UserProfileRead, 'createdAt'>[] = [
     displayName: 'Anna Andersson',
     email: 'anna.andersson@example.com',
     phone: '070-123 45 67',
+    role: 'user',
   },
   {
     displayName: 'Björn Bergström',
     email: 'bjorn.bergstrom@example.com',
     phone: '070-234 56 78',
+    role: 'admin',
   },
   {
     displayName: 'Cecilia Carlsson',
     email: 'cecilia.carlsson@example.com',
     phone: '070-345 67 89',
+    role: 'user',
   },
   {
     displayName: 'David Dahl',
     email: 'david.dahl@example.com',
     phone: '070-456 78 90',
+    role: 'user',
   },
   {
     displayName: 'Emma Eriksson',
     email: 'emma.eriksson@example.com',
     phone: '070-567 89 01',
+    role: 'admin',
   },
 ]
 
