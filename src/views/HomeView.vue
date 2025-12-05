@@ -1,6 +1,11 @@
 <template>
   <div class="min-h-screen bg-base-100">
     <div class="container mx-auto px-4 py-8">
+      <!-- User dropdown in top right -->
+      <div class="flex justify-end mb-4">
+        <UserDropdown v-if="isAuthenticated" />
+      </div>
+
       <div class="text-center mb-8">
         <h1 class="text-5xl font-bold mb-4">HTK Tennis</h1>
         <p class="text-xl text-base-content/70">Välkommen till HTK Tennis v2</p>
@@ -8,17 +13,6 @@
           <button v-if="!isAuthenticated" @click="openAuthModal" class="btn btn-primary">
             Logga in / Skapa konto
           </button>
-          <div v-else class="flex items-center justify-center gap-4">
-            <RouterLink to="/profile" class="flex items-center gap-2 link link-hover">
-              <div class="avatar">
-                <div class="w-10 rounded-full">
-                  <img :src="userStore.avatarUrl" :alt="displayName" />
-                </div>
-              </div>
-              <span class="text-base-content/70">Inloggad som: {{ displayName || email }}</span>
-            </RouterLink>
-            <button @click="handleSignOut" class="btn btn-outline btn-sm">Logga ut</button>
-          </div>
         </div>
       </div>
 
@@ -218,10 +212,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter, RouterLink } from 'vue-router'
 import { Timestamp } from 'firebase/firestore'
 import { useUserStore } from '@/stores/user'
-import { useFirebaseAuth } from '@/composables/useFirebaseAuth'
 import { useBookings } from '@/composables/useBookings'
 import {
   getMockUsers,
@@ -233,17 +225,14 @@ import { formatBookingDateTime } from '@/utils/dateUtils'
 import { getUserDisplayName as fetchUserDisplayName } from '@/utils/userProfile'
 import BookingModal from '@/components/BookingModal.vue'
 import AuthModal from '@/components/AuthModal.vue'
+import UserDropdown from '@/components/UserDropdown.vue'
 import type { UserProfileRead } from '@/types/user'
 import type { BookingRead } from '@/types/booking'
 
-const router = useRouter()
 const userStore = useUserStore()
-const { signOut } = useFirebaseAuth()
 const { bookingsStore, currentUserId } = useBookings()
 
 const isAuthenticated = computed(() => userStore.isAuthenticated)
-const displayName = computed(() => userStore.displayName)
-const email = computed(() => userStore.email)
 
 const mockUsers = ref<UserProfileRead[]>([])
 const mockBookings = ref<BookingRead[]>([])
@@ -490,16 +479,6 @@ async function handleBookingSubmit(data: {
   } catch (error) {
     console.error('Error saving booking:', error)
     // Error is handled by the store
-  }
-}
-
-async function handleSignOut() {
-  try {
-    await signOut()
-    // Stay on home page after sign out
-    router.push('/')
-  } catch (error) {
-    console.error('Sign out error:', error)
   }
 }
 </script>

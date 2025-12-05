@@ -22,6 +22,9 @@
           </RouterLink>
           <h1 class="text-4xl font-bold">Min profil</h1>
         </div>
+
+        <!-- User dropdown -->
+        <UserDropdown />
       </div>
 
       <!-- Loading state -->
@@ -51,15 +54,6 @@
       <div v-else class="max-w-2xl">
         <div class="card bg-base-200 shadow-lg">
           <div class="card-body">
-            <!-- Avatar -->
-            <div class="flex justify-center mb-6">
-              <div class="avatar">
-                <div class="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                  <img :src="avatarUrl" :alt="displayName" />
-                </div>
-              </div>
-            </div>
-
             <!-- Success message -->
             <div v-if="showSuccess" class="alert alert-success mb-4">
               <svg
@@ -118,6 +112,7 @@
                 <input
                   v-model="formData.phone"
                   type="tel"
+                  inputmode="tel"
                   placeholder="+46 70 123 45 67 eller 070-123 45 67"
                   class="input input-bordered w-full"
                   :class="{ 'input-error': phoneError }"
@@ -149,6 +144,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { validatePhoneNumber } from '@/utils/phoneUtils'
+import UserDropdown from '@/components/UserDropdown.vue'
 
 const userStore = useUserStore()
 
@@ -162,7 +158,6 @@ const showSuccess = ref(false)
 const phoneError = ref('')
 
 const displayName = computed(() => userStore.displayName)
-const avatarUrl = computed(() => userStore.avatarUrl)
 
 // Check if form has changes
 const hasChanges = computed(() => {
@@ -172,27 +167,25 @@ const hasChanges = computed(() => {
   )
 })
 
-// Load profile data on mount
+// Ensure profile is loaded on mount
 onMounted(async () => {
-  // Ensure profile is loaded
   if (userStore.currentUser && !userStore.userProfile) {
     await userStore.loadUserProfile(userStore.currentUser.uid)
-  }
-
-  // Populate form with current profile data
-  if (userStore.userProfile) {
-    formData.value.displayName = userStore.userProfile.displayName
-    formData.value.phone = userStore.userProfile.phone || ''
   }
 })
 
 // Watch for profile changes and update form
+// This handles both initial load and subsequent updates
 watch(
   () => userStore.userProfile,
   profile => {
     if (profile) {
       formData.value.displayName = profile.displayName
       formData.value.phone = profile.phone || ''
+    } else {
+      // Reset form if profile is cleared
+      formData.value.displayName = ''
+      formData.value.phone = ''
     }
   },
   { immediate: true }
@@ -230,7 +223,7 @@ async function handleSubmit() {
   try {
     await userStore.updateProfile({
       displayName: formData.value.displayName.trim(),
-      phone: formData.value.phone.trim() || undefined,
+      phone: formData.value.phone.trim(),
     })
 
     // Show success message
