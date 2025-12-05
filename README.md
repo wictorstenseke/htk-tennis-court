@@ -122,7 +122,7 @@ The CI pipeline runs automatically on:
 ### Continuous Deployment (CD)
 
 - **GitHub Pages**: Automatically deploys to GitHub Pages when changes are merged to `main`
-- **Live Preview**: Test versions are available at: `https://[your-username].github.io/htk-tennis-v2/`
+- **Live Preview**: Test versions are available at: `https://[your-username].github.io/htk-tennis-court/`
 
 ### Branch Protection
 
