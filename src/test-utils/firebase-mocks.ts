@@ -66,6 +66,7 @@ export function createMockUserProfile(overrides?: Partial<UserProfileRead>): Use
     displayName: 'Test User',
     email: 'test@example.com',
     phone: '+1234567890',
+    role: 'user',
     createdAt: createMockTimestamp(),
     ...overrides,
   }

@@ -1,7 +1,20 @@
 import { db } from '@/config/firebase'
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
+import {
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  serverTimestamp,
+  collection,
+} from 'firebase/firestore'
 import type { User } from 'firebase/auth'
-import type { UserProfile, UserProfileRead, UserProfileUpdate } from '@/types/user'
+import type {
+  UserProfile,
+  UserProfileRead,
+  UserProfileUpdate,
+  UserProfileAdminUpdate,
+} from '@/types/user'
 import { getGravatarUrl } from './gravatarUtils'
 import { formatPhoneNumber, validatePhoneNumber } from './phoneUtils'
 
@@ -66,11 +79,13 @@ export async function createUserProfileFromAuth(
     const avatarUrl = getGravatarUrl(email)
 
     // Create new profile with required fields
+    // Default role is 'user' for new users
     const newProfile: UserProfile = {
       displayName: finalDisplayName,
       email,
       phone: '',
       avatarUrl,
+      role: 'user',
       createdAt: serverTimestamp(),
     }
 
@@ -169,4 +184,60 @@ export async function getUserDisplayName(userId: string): Promise<string> {
  */
 export function generateAvatarUrl(email: string): string {
   return getGravatarUrl(email)
+}
+
+/**
+ * Get all users from Firestore (admin only)
+ * @returns Array of UserProfileRead with uid
+ */
+export async function getAllUsers(): Promise<Array<UserProfileRead & { uid: string }>> {
+  try {
+    const usersCollection = collection(db, USERS_COLLECTION)
+    const usersSnapshot = await getDocs(usersCollection)
+
+    const users: Array<UserProfileRead & { uid: string }> = []
+    usersSnapshot.forEach(doc => {
+      users.push({
+        uid: doc.id,
+        ...(doc.data() as UserProfileRead),
+      })
+    })
+
+    return users
+  } catch (error) {
+    console.error('Error getting all users:', error)
+    throw error
+  }
+}
+
+/**
+ * Update user role (admin/superuser only)
+ * @param uid - Firebase Auth UID
+ * @param updates - Admin update with role field
+ */
+export async function updateUserRole(uid: string, updates: UserProfileAdminUpdate): Promise<void> {
+  try {
+    if (updates.role === undefined) {
+      throw new Error('Role must be provided')
+    }
+
+    // Validate role value
+    const validRoles = ['user', 'admin', 'superuser']
+    if (!validRoles.includes(updates.role)) {
+      throw new Error(`Invalid role. Must be one of: ${validRoles.join(', ')}`)
+    }
+
+    const userDocRef = doc(db, USERS_COLLECTION, uid)
+
+    // Check if profile exists before updating
+    const existingProfile = await getCurrentUserProfile(uid)
+    if (!existingProfile) {
+      throw new Error('User profile does not exist.')
+    }
+
+    await updateDoc(userDocRef, { role: updates.role })
+  } catch (error) {
+    console.error('Error updating user role:', error)
+    throw error
+  }
 }

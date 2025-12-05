@@ -13,16 +13,16 @@ const routes: RouteRecordRaw[] = [
     redirect: '/',
   },
   {
-    path: '/bookings',
-    name: 'bookings',
-    component: () => import('@/views/BookingsView.vue'),
-    meta: { requiresAuth: true },
-  },
-  {
     path: '/profile',
     name: 'profile',
     component: () => import('@/views/ProfileView.vue'),
     meta: { requiresAuth: true },
+  },
+  {
+    path: '/admin',
+    name: 'admin',
+    component: () => import('@/views/AdminView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
   },
 ]
 
@@ -38,6 +38,9 @@ router.beforeEach((to, _from, next) => {
   if (to.meta.requiresAuth && !userStore.isAuthenticated) {
     // User is not authenticated, redirect to home
     // Note: According to requirements, redirect handling is solved separately
+    next({ name: 'home' })
+  } else if (to.meta.requiresAdmin && !userStore.isAdmin) {
+    // User is not admin/superuser, redirect to home
     next({ name: 'home' })
   } else {
     next()
