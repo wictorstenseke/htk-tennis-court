@@ -9,7 +9,14 @@
             Logga in / Skapa konto
           </button>
           <div v-else class="flex items-center justify-center gap-4">
-            <span class="text-base-content/70">Inloggad som: {{ displayName || email }}</span>
+            <RouterLink to="/profile" class="flex items-center gap-2 link link-hover">
+              <div class="avatar">
+                <div class="w-10 rounded-full">
+                  <img :src="userStore.avatarUrl" :alt="displayName" />
+                </div>
+              </div>
+              <span class="text-base-content/70">Inloggad som: {{ displayName || email }}</span>
+            </RouterLink>
             <button @click="handleSignOut" class="btn btn-outline btn-sm">Logga ut</button>
           </div>
         </div>
@@ -211,7 +218,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, RouterLink } from 'vue-router'
 import { Timestamp } from 'firebase/firestore'
 import { useUserStore } from '@/stores/user'
 import { useFirebaseAuth } from '@/composables/useFirebaseAuth'

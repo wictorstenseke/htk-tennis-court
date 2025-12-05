@@ -8,6 +8,7 @@ export interface UserProfile {
   displayName: string // required, non-empty string used in the UI
   email: string // required, same as Firebase Auth email
   phone?: string // optional phone number for contacting players
+  avatarUrl?: string // optional Gravatar URL for convenience
   createdAt: FieldValue // set with serverTimestamp() on creation
 }
 
@@ -19,6 +20,7 @@ export interface UserProfileRead {
   displayName: string
   email: string
   phone?: string
+  avatarUrl?: string
   createdAt: Timestamp
 }
 

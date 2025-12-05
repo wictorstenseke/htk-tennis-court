@@ -22,7 +22,15 @@
           </RouterLink>
           <h1 class="text-4xl font-bold">Bokningar</h1>
         </div>
-        <button class="btn btn-primary" @click="openModal">
+        <div class="flex items-center gap-2">
+          <RouterLink to="/profile" class="btn btn-ghost btn-sm">
+            <div class="avatar">
+              <div class="w-8 rounded-full">
+                <img :src="avatarUrl" alt="Profil" />
+              </div>
+            </div>
+          </RouterLink>
+          <button class="btn btn-primary" @click="openModal">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-5 w-5 mr-2"
@@ -114,11 +122,14 @@ import { ref, computed, onMounted } from 'vue'
 import { Timestamp } from 'firebase/firestore'
 import { RouterLink } from 'vue-router'
 import { useBookings } from '@/composables/useBookings'
+import { useUserStore } from '@/stores/user'
 import { formatBookingDateTime, getDayBounds } from '@/utils/dateUtils'
 import { getUserDisplayName as fetchUserDisplayName } from '@/utils/userProfile'
 import BookingModal from '@/components/BookingModal.vue'
 
 const { bookingsStore, currentUserId } = useBookings()
+const userStore = useUserStore()
+const avatarUrl = computed(() => userStore.avatarUrl)
 
 const selectedDate = ref(new Date())
 const isModalOpen = ref(false)

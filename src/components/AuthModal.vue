@@ -7,7 +7,7 @@
       </h2>
 
       <!-- Error Message -->
-      <div v-if="error" class="alert alert-error mb-4">
+      <div v-if="error || localError" class="alert alert-error mb-4">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="stroke-current shrink-0 h-6 w-6"
@@ -21,7 +21,7 @@
             d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
-        <span>{{ error }}</span>
+        <span>{{ error || localError }}</span>
       </div>
 
       <!-- Success Message (for password reset) -->
@@ -81,6 +81,20 @@
             v-model="email"
             type="email"
             placeholder="din@epost.se"
+            class="input input-bordered w-full"
+            required
+          />
+        </div>
+
+        <div v-if="isSignUp" class="form-control">
+          <label class="label">
+            <span class="label-text">Spelarnamn</span>
+            <span class="label-text-alt text-error">*</span>
+          </label>
+          <input
+            v-model="displayName"
+            type="text"
+            placeholder="Ditt spelarnamn"
             class="input input-bordered w-full"
             required
           />
@@ -187,6 +201,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useFirebaseAuth } from '@/composables/useFirebaseAuth'
+import { useUserStore } from '@/stores/user'
 
 interface Props {
   isOpen: boolean
@@ -201,10 +216,13 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const { signUp, signIn, resetPassword, isLoading, error, clearError } = useFirebaseAuth()
+const userStore = useUserStore()
+const localError = ref<string | null>(null)
 
 const modalRef = ref<HTMLDialogElement | null>(null)
 const email = ref('')
 const password = ref('')
+const displayName = ref('')
 const showPassword = ref(false)
 const isSignUp = ref(false)
 const showForgotPassword = ref(false)
@@ -223,10 +241,12 @@ watch(
 function resetForm() {
   email.value = ''
   password.value = ''
+  displayName.value = ''
   showPassword.value = false
   isSignUp.value = false
   showForgotPassword.value = false
   resetEmailSent.value = false
+  localError.value = null
   clearError()
 }
 
@@ -237,11 +257,20 @@ function handleClose() {
 
 async function handleSubmit() {
   clearError()
+  localError.value = null
   resetEmailSent.value = false
 
   try {
     if (isSignUp.value) {
-      await signUp(email.value, password.value)
+      // Validate displayName for signup
+      if (!displayName.value.trim()) {
+        localError.value = 'Spelarnamn är obligatoriskt'
+        return
+      }
+      localError.value = null
+      // Store displayName in user store for profile creation
+      userStore.setPendingDisplayName(displayName.value.trim())
+      await signUp(email.value, password.value, displayName.value.trim())
     } else {
       await signIn(email.value, password.value)
     }
