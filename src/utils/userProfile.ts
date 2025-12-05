@@ -142,6 +142,15 @@ export async function updateUserProfile(
       }
     }
 
+    if (partialProfile.sidebarState !== undefined) {
+      // Validate sidebarState value
+      const validStates = ['expanded', 'collapsed', 'hover']
+      if (!validStates.includes(partialProfile.sidebarState)) {
+        throw new Error(`Invalid sidebarState. Must be one of: ${validStates.join(', ')}`)
+      }
+      updateData.sidebarState = partialProfile.sidebarState
+    }
+
     // Ensure we have at least one field to update
     if (Object.keys(updateData).length === 0) {
       throw new Error('No valid fields to update')

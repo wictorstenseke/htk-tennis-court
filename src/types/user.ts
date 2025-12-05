@@ -6,6 +6,11 @@ import type { FieldValue, Timestamp } from 'firebase/firestore'
 export type UserRole = 'superuser' | 'admin' | 'user'
 
 /**
+ * Sidebar state type
+ */
+export type SidebarState = 'expanded' | 'collapsed' | 'hover'
+
+/**
  * UserProfile interface for writing to Firestore
  * createdAt uses FieldValue (serverTimestamp()) when creating
  */
@@ -15,6 +20,7 @@ export interface UserProfile {
   phone?: string // optional phone number for contacting players
   avatarUrl?: string // optional Gravatar URL for convenience
   role: UserRole // user role: 'superuser' | 'admin' | 'user'
+  sidebarState?: SidebarState // user preference for sidebar state
   createdAt: FieldValue // set with serverTimestamp() on creation
 }
 
@@ -29,12 +35,14 @@ export interface UserProfileRead {
   phone?: string
   avatarUrl?: string
   role?: UserRole // optional for backward compatibility with existing users
+  sidebarState?: SidebarState // user preference for sidebar state
   createdAt: Timestamp
 }
 
 export interface UserProfileUpdate {
   displayName?: string
   phone?: string
+  sidebarState?: SidebarState
 }
 
 /**

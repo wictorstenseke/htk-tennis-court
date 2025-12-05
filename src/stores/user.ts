@@ -79,7 +79,11 @@ export const useUserStore = defineStore('user', () => {
     pendingDisplayName.value = displayName
   }
 
-  async function updateProfile(updates: { displayName?: string; phone?: string }) {
+  async function updateProfile(updates: {
+    displayName?: string
+    phone?: string
+    sidebarState?: import('@/types/user').SidebarState
+  }) {
     if (!currentUser.value) {
       throw new Error('No user is currently authenticated')
     }
