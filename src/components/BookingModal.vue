@@ -1,7 +1,7 @@
 <template>
   <dialog ref="modalRef" class="modal" :class="{ 'modal-open': isOpen }">
     <div class="modal-box">
-      <h3 class="font-bold text-lg mb-4">Boka banan</h3>
+      <h3 class="font-bold text-lg mb-4">{{ isEditMode ? 'Redigera bokning' : 'Boka banan' }}</h3>
 
       <form @submit.prevent="handleSubmit" class="space-y-4">
         <!-- Date picker -->
@@ -57,7 +57,7 @@
           <button type="button" class="btn" @click="handleClose">Avbryt</button>
           <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
             <span v-if="isSubmitting" class="loading loading-spinner loading-sm"></span>
-            <span v-else>Boka</span>
+            <span v-else>{{ isEditMode ? 'Uppdatera' : 'Boka' }}</span>
           </button>
         </div>
       </form>
@@ -77,11 +77,12 @@ import type { BookingRead } from '@/types/booking'
 interface Props {
   isOpen: boolean
   existingBookings: BookingRead[]
+  editingBooking?: BookingRead | null
 }
 
 interface Emits {
   (e: 'close'): void
-  (e: 'submit', data: { startTime: Timestamp; endTime: Timestamp }): void
+  (e: 'submit', data: { startTime: Timestamp; endTime: Timestamp; bookingId?: string }): void
 }
 
 const props = defineProps<Props>()
@@ -94,20 +95,40 @@ const endTime = ref('')
 const errorMessage = ref('')
 const isSubmitting = ref(false)
 
+const isEditMode = computed(() => !!props.editingBooking)
+
 const minDate = computed(() => {
   const today = new Date()
   return today.toISOString().split('T')[0]
 })
+
+// Format time for input (HH:mm)
+function formatTimeForInput(date: Date): string {
+  const hours = date.getHours().toString().padStart(2, '0')
+  const minutes = date.getMinutes().toString().padStart(2, '0')
+  return `${hours}:${minutes}`
+}
 
 // Reset form when modal opens
 watch(
   () => props.isOpen,
   isOpen => {
     if (isOpen) {
-      const today = new Date()
-      selectedDate.value = today.toISOString().split('T')[0]
-      startTime.value = ''
-      endTime.value = ''
+      if (props.editingBooking) {
+        // Prefill form with editing booking data
+        const startDate = props.editingBooking.startTime.toDate()
+        const endDate = props.editingBooking.endTime.toDate()
+
+        selectedDate.value = startDate.toISOString().split('T')[0]
+        startTime.value = formatTimeForInput(startDate)
+        endTime.value = formatTimeForInput(endDate)
+      } else {
+        // Reset form for new booking
+        const today = new Date()
+        selectedDate.value = today.toISOString().split('T')[0]
+        startTime.value = ''
+        endTime.value = ''
+      }
       errorMessage.value = ''
       isSubmitting.value = false
     }
@@ -152,8 +173,9 @@ async function handleSubmit() {
     const startTimestamp = Timestamp.fromDate(startDate)
     const endTimestamp = Timestamp.fromDate(endDate)
 
-    // Check for overlaps
-    if (hasBookingOverlap(startTimestamp, endTimestamp, props.existingBookings)) {
+    // Check for overlaps (exclude current booking if editing)
+    const excludeBookingId = props.editingBooking?.id
+    if (hasBookingOverlap(startTimestamp, endTimestamp, props.existingBookings, excludeBookingId)) {
       errorMessage.value =
         'Vald tid överlappar med en befintlig bokning. Vänligen välj en annan tid.'
       isSubmitting.value = false
@@ -164,6 +186,7 @@ async function handleSubmit() {
     emit('submit', {
       startTime: startTimestamp,
       endTime: endTimestamp,
+      bookingId: props.editingBooking?.id,
     })
 
     // Reset form

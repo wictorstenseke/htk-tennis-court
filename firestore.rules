@@ -44,17 +44,24 @@ service cloud.firestore {
                     && (!('opponentUserId' in request.resource.data) || request.resource.data.opponentUserId is string);
       
       // Update: only involved players may change/cancel
-      // Only allow updating status and opponentUserId
+      // Allow updating status, opponentUserId, startTime, and endTime
       allow update: if request.auth != null
                     && (
                       resource.data.userId == request.auth.uid ||
                       resource.data.opponentUserId == request.auth.uid
                     )
-                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'opponentUserId'])
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'opponentUserId', 'startTime', 'endTime'])
                     && (!('status' in request.resource.data.diff(resource.data).affectedKeys())
                         || request.resource.data.status in ['booked', 'cancelled'])
                     && (!('opponentUserId' in request.resource.data.diff(resource.data).affectedKeys())
-                        || request.resource.data.opponentUserId is string);
+                        || request.resource.data.opponentUserId is string)
+                    && (!('startTime' in request.resource.data.diff(resource.data).affectedKeys())
+                        || request.resource.data.startTime is timestamp)
+                    && (!('endTime' in request.resource.data.diff(resource.data).affectedKeys())
+                        || request.resource.data.endTime is timestamp)
+                    && request.resource.data.startTime is timestamp
+                    && request.resource.data.endTime is timestamp
+                    && request.resource.data.startTime < request.resource.data.endTime;
       
       // Delete: only involved players may delete
       allow delete: if request.auth != null

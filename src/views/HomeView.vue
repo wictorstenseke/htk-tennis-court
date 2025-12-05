@@ -198,6 +198,7 @@
         v-if="isAuthenticated"
         :is-open="isModalOpen"
         :existing-bookings="bookedBookings"
+        :editing-booking="editingBooking"
         @close="closeModal"
         @submit="handleBookingSubmit"
       />
@@ -241,6 +242,7 @@ const mockUsers = ref<UserProfileRead[]>([])
 const mockBookings = ref<BookingRead[]>([])
 const isModalOpen = ref(false)
 const isAuthModalOpen = ref(false)
+const editingBooking = ref<BookingRead | null>(null)
 const userDisplayNames = ref<Map<string, string>>(new Map())
 
 const bookedBookings = computed(() => {
@@ -348,10 +350,8 @@ function isMyBooking(booking: BookingRead): boolean {
 }
 
 function handleEditBooking(booking: BookingRead) {
-  // TODO: Implement edit functionality
-  // For now, we can open the modal with pre-filled data
-  console.log('Edit booking:', booking)
-  // You can implement edit modal later
+  editingBooking.value = booking
+  openModal()
 }
 
 async function handleDeleteBooking(booking: BookingRead) {
@@ -432,6 +432,7 @@ function openModal() {
 
 function closeModal() {
   isModalOpen.value = false
+  editingBooking.value = null
 }
 
 function openAuthModal() {
@@ -448,26 +449,39 @@ function handleAuthSuccess() {
   loadFutureBookings()
 }
 
-async function handleBookingSubmit(data: { startTime: Timestamp; endTime: Timestamp }) {
+async function handleBookingSubmit(data: {
+  startTime: Timestamp
+  endTime: Timestamp
+  bookingId?: string
+}) {
   if (!currentUserId.value) {
     console.error('User not authenticated')
     return
   }
 
   try {
-    await bookingsStore.addBooking({
-      userId: currentUserId.value,
-      startTime: data.startTime,
-      endTime: data.endTime,
-      status: 'booked',
-    })
+    if (data.bookingId && editingBooking.value) {
+      // Update existing booking
+      await bookingsStore.editBooking(data.bookingId, {
+        startTime: data.startTime,
+        endTime: data.endTime,
+      })
+    } else {
+      // Create new booking
+      await bookingsStore.addBooking({
+        userId: currentUserId.value,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        status: 'booked',
+      })
+    }
 
     // Reload bookings to get updated list
     await loadFutureBookings()
 
     closeModal()
   } catch (error) {
-    console.error('Error creating booking:', error)
+    console.error('Error saving booking:', error)
     // Error is handled by the store
   }
 }
