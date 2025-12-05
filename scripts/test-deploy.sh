@@ -29,8 +29,8 @@ if [ ! -f "dist/index.html" ]; then
 fi
 
 # Check if base path is correct
-if grep -q "/htk-tennis-v2/" dist/index.html; then
-  echo "✅ Base path correctly set to /htk-tennis-v2/"
+if grep -q "/htk-tennis-court/" dist/index.html; then
+  echo "✅ Base path correctly set to /htk-tennis-court/"
 else
   echo "⚠️  Warning: Base path might not be set correctly"
 fi

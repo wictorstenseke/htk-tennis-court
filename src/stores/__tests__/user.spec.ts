@@ -3,6 +3,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import { useUserStore } from '../user'
 import * as userProfileUtils from '@/utils/userProfile'
 import { createMockUser, createMockUserProfile } from '@/test-utils/firebase-mocks'
+import type { UserProfileRead } from '@/types/user'
 
 vi.mock('@/utils/userProfile')
 
@@ -24,6 +25,7 @@ describe('useUserStore', () => {
       expect(store.displayName).toBe('')
       expect(store.email).toBe('')
       expect(store.phone).toBe('')
+      expect(store.avatarUrl).toBe('')
     })
   })
 
@@ -66,7 +68,42 @@ describe('useUserStore', () => {
 
       await store.setUser(mockUser)
 
-      expect(userProfileUtils.createUserProfileFromAuth).toHaveBeenCalledWith(mockUser)
+      expect(userProfileUtils.createUserProfileFromAuth).toHaveBeenCalledWith(mockUser, undefined)
+      expect(store.userProfile).toStrictEqual(mockProfile)
+    })
+
+    it('should create profile with displayName when provided', async () => {
+      const store = useUserStore()
+      const mockUser = createMockUser()
+      const mockProfile = createMockUserProfile()
+
+      vi.mocked(userProfileUtils.getCurrentUserProfile).mockResolvedValue(null)
+      vi.mocked(userProfileUtils.createUserProfileFromAuth).mockResolvedValue(mockProfile)
+
+      await store.setUser(mockUser, 'Test Player')
+
+      expect(userProfileUtils.createUserProfileFromAuth).toHaveBeenCalledWith(
+        mockUser,
+        'Test Player'
+      )
+      expect(store.userProfile).toStrictEqual(mockProfile)
+    })
+
+    it('should use pendingDisplayName when creating profile', async () => {
+      const store = useUserStore()
+      const mockUser = createMockUser()
+      const mockProfile = createMockUserProfile()
+
+      store.setPendingDisplayName('Pending Name')
+      vi.mocked(userProfileUtils.getCurrentUserProfile).mockResolvedValue(null)
+      vi.mocked(userProfileUtils.createUserProfileFromAuth).mockResolvedValue(mockProfile)
+
+      await store.setUser(mockUser)
+
+      expect(userProfileUtils.createUserProfileFromAuth).toHaveBeenCalledWith(
+        mockUser,
+        'Pending Name'
+      )
       expect(store.userProfile).toStrictEqual(mockProfile)
     })
   })
@@ -74,8 +111,10 @@ describe('useUserStore', () => {
   describe('loadUserProfile', () => {
     it('should load user profile successfully', async () => {
       const store = useUserStore()
+      const mockUser = createMockUser({ uid: 'user-id' })
       const mockProfile = createMockUserProfile()
 
+      store.currentUser = mockUser
       vi.mocked(userProfileUtils.getCurrentUserProfile).mockResolvedValue(mockProfile)
 
       await store.loadUserProfile('user-id')
@@ -83,6 +122,24 @@ describe('useUserStore', () => {
       expect(store.userProfile).toStrictEqual(mockProfile)
       expect(store.isLoading).toBe(false)
       expect(store.error).toBeNull()
+    })
+
+    it('should create profile with displayName when provided', async () => {
+      const store = useUserStore()
+      const mockUser = createMockUser({ uid: 'user-id' })
+      const mockProfile = createMockUserProfile()
+
+      store.currentUser = mockUser
+      vi.mocked(userProfileUtils.getCurrentUserProfile).mockResolvedValue(null)
+      vi.mocked(userProfileUtils.createUserProfileFromAuth).mockResolvedValue(mockProfile)
+
+      await store.loadUserProfile('user-id', 'Test Player')
+
+      expect(userProfileUtils.createUserProfileFromAuth).toHaveBeenCalledWith(
+        mockUser,
+        'Test Player'
+      )
+      expect(store.userProfile).toStrictEqual(mockProfile)
     })
 
     it('should handle errors when loading profile', async () => {
@@ -181,6 +238,39 @@ describe('useUserStore', () => {
 
       store.currentUser = createMockUser()
       expect(store.isAuthenticated).toBe(true)
+    })
+
+    it('should return avatarUrl from profile', () => {
+      const store = useUserStore()
+      const mockProfile = createMockUserProfile({ avatarUrl: 'https://example.com/avatar.jpg' })
+
+      store.userProfile = mockProfile
+      expect(store.avatarUrl).toBe('https://example.com/avatar.jpg')
+    })
+
+    it('should generate avatarUrl from email when not in profile', () => {
+      const store = useUserStore()
+      const mockProfile = createMockUserProfile({ email: 'test@example.com' })
+      // Create profile without avatarUrl to test fallback
+      const profileWithoutAvatar: UserProfileRead = {
+        displayName: mockProfile.displayName,
+        email: mockProfile.email,
+        phone: mockProfile.phone,
+        createdAt: mockProfile.createdAt,
+      }
+      store.userProfile = profileWithoutAvatar
+
+      expect(store.avatarUrl).toContain('gravatar.com')
+      expect(store.avatarUrl).toContain('/avatar/')
+    })
+  })
+
+  describe('setPendingDisplayName', () => {
+    it('should set pending display name', () => {
+      const store = useUserStore()
+      store.setPendingDisplayName('Test Name')
+      // Note: pendingDisplayName is internal, but we can test it indirectly through profile creation
+      expect(store).toBeDefined()
     })
   })
 

@@ -2,6 +2,8 @@ import { db } from '@/config/firebase'
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import type { User } from 'firebase/auth'
 import type { UserProfile, UserProfileRead, UserProfileUpdate } from '@/types/user'
+import { getGravatarUrl } from './gravatarUtils'
+import { formatPhoneNumber, validatePhoneNumber } from './phoneUtils'
 
 const USERS_COLLECTION = 'users'
 
@@ -30,9 +32,13 @@ export async function getCurrentUserProfile(uid: string): Promise<UserProfileRea
  * Create a user profile from Firebase Auth user on first sign-in
  * Only creates if the profile doesn't already exist
  * @param user - Firebase Auth User object
+ * @param displayName - Optional display name (Spelarnamn) to use instead of deriving from user
  * @returns Created UserProfileRead
  */
-export async function createUserProfileFromAuth(user: User): Promise<UserProfileRead> {
+export async function createUserProfileFromAuth(
+  user: User,
+  displayName?: string
+): Promise<UserProfileRead> {
   try {
     const uid = user.uid
     const userDocRef = doc(db, USERS_COLLECTION, uid)
@@ -43,20 +49,29 @@ export async function createUserProfileFromAuth(user: User): Promise<UserProfile
       return existingProfile
     }
 
-    // Create new profile with required fields
-    const newProfile: UserProfile = {
-      displayName: user.displayName || user.email?.split('@')[0] || 'User',
-      email: user.email || '',
-      phone: '',
-      createdAt: serverTimestamp(),
-    }
+    // Use provided displayName, or fall back to user.displayName, or email prefix, or 'User'
+    const finalDisplayName =
+      displayName?.trim() || user.displayName || user.email?.split('@')[0] || 'User'
 
     // Validate required fields
-    if (!newProfile.displayName.trim()) {
+    if (!finalDisplayName.trim()) {
       throw new Error('Display name cannot be empty')
     }
-    if (!newProfile.email.trim()) {
+    const email = user.email || ''
+    if (!email.trim()) {
       throw new Error('Email cannot be empty')
+    }
+
+    // Generate Gravatar URL
+    const avatarUrl = getGravatarUrl(email)
+
+    // Create new profile with required fields
+    const newProfile: UserProfile = {
+      displayName: finalDisplayName,
+      email,
+      phone: '',
+      avatarUrl,
+      createdAt: serverTimestamp(),
     }
 
     await setDoc(userDocRef, newProfile)
@@ -92,11 +107,24 @@ export async function updateUserProfile(
       if (!partialProfile.displayName.trim()) {
         throw new Error('Display name cannot be empty')
       }
-      updateData.displayName = partialProfile.displayName
+      updateData.displayName = partialProfile.displayName.trim()
     }
 
     if (partialProfile.phone !== undefined) {
-      updateData.phone = partialProfile.phone
+      // Format phone number if provided
+      if (partialProfile.phone.trim()) {
+        // Validate phone number format
+        if (!validatePhoneNumber(partialProfile.phone)) {
+          throw new Error(
+            'Ogiltigt telefonnummer. Använd formatet +46 70 123 45 67 eller 070-123 45 67'
+          )
+        }
+        // Format to normalized international format
+        updateData.phone = formatPhoneNumber(partialProfile.phone)
+      } else {
+        // Empty string means clear the phone number
+        updateData.phone = ''
+      }
     }
 
     // Ensure we have at least one field to update
@@ -132,4 +160,13 @@ export async function getUserDisplayName(userId: string): Promise<string> {
     console.error('Error getting user display name:', error)
     return 'Okänd användare'
   }
+}
+
+/**
+ * Generate or update avatar URL based on email
+ * @param email - Email address
+ * @returns Gravatar URL
+ */
+export function generateAvatarUrl(email: string): string {
+  return getGravatarUrl(email)
 }

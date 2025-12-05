@@ -14,14 +14,21 @@ import { auth } from '@/config/firebase'
 export function useFirebaseAuth() {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
+  const pendingDisplayName = ref<string | null>(null)
 
   /**
    * Create a new account with email and password
+   * @param displayName - Optional display name (Spelarnamn) to use for profile creation
    */
-  async function signUp(email: string, password: string): Promise<User> {
+  async function signUp(email: string, password: string, displayName?: string): Promise<User> {
     try {
       isLoading.value = true
       error.value = null
+
+      // Store displayName temporarily for profile creation
+      if (displayName) {
+        pendingDisplayName.value = displayName
+      }
 
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
       return userCredential.user
@@ -144,6 +151,15 @@ export function useFirebaseAuth() {
     error.value = null
   }
 
+  /**
+   * Get and clear pending display name (used after signup)
+   */
+  function getPendingDisplayName(): string | null {
+    const name = pendingDisplayName.value
+    pendingDisplayName.value = null
+    return name
+  }
+
   return {
     isLoading,
     error,
@@ -152,5 +168,6 @@ export function useFirebaseAuth() {
     signOut: signOutUser,
     resetPassword,
     clearError,
+    getPendingDisplayName,
   }
 }

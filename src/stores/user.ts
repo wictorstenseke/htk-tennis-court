@@ -7,6 +7,7 @@ import {
   createUserProfileFromAuth,
   updateUserProfile,
 } from '@/utils/userProfile'
+import { getGravatarUrl } from '@/utils/gravatarUtils'
 
 export const useUserStore = defineStore('user', () => {
   // State
@@ -14,25 +15,36 @@ export const useUserStore = defineStore('user', () => {
   const userProfile = ref<UserProfileRead | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
+  const pendingDisplayName = ref<string | null>(null)
 
   // Getters
   const isAuthenticated = computed(() => currentUser.value !== null)
   const displayName = computed(() => userProfile.value?.displayName ?? '')
   const email = computed(() => userProfile.value?.email ?? currentUser.value?.email ?? '')
   const phone = computed(() => userProfile.value?.phone ?? '')
+  const avatarUrl = computed(() => {
+    if (userProfile.value?.avatarUrl) {
+      return userProfile.value.avatarUrl
+    }
+    // Generate from email if not stored
+    if (email.value) {
+      return getGravatarUrl(email.value)
+    }
+    return ''
+  })
 
   // Actions
-  async function setUser(user: User | null) {
+  async function setUser(user: User | null, displayName?: string) {
     currentUser.value = user
 
     if (user) {
-      await loadUserProfile(user.uid)
+      await loadUserProfile(user.uid, displayName)
     } else {
       userProfile.value = null
     }
   }
 
-  async function loadUserProfile(uid: string) {
+  async function loadUserProfile(uid: string, displayName?: string) {
     try {
       isLoading.value = true
       error.value = null
@@ -41,7 +53,11 @@ export const useUserStore = defineStore('user', () => {
 
       // If profile doesn't exist and we have a current user, create it
       if (!profile && currentUser.value) {
-        profile = await createUserProfileFromAuth(currentUser.value)
+        // Use provided displayName, or pendingDisplayName, or undefined
+        const nameToUse = displayName || pendingDisplayName.value || undefined
+        profile = await createUserProfileFromAuth(currentUser.value, nameToUse)
+        // Clear pending displayName after use
+        pendingDisplayName.value = null
       }
 
       userProfile.value = profile
@@ -51,6 +67,10 @@ export const useUserStore = defineStore('user', () => {
     } finally {
       isLoading.value = false
     }
+  }
+
+  function setPendingDisplayName(displayName: string) {
+    pendingDisplayName.value = displayName
   }
 
   async function updateProfile(updates: { displayName?: string; phone?: string }) {
@@ -90,10 +110,12 @@ export const useUserStore = defineStore('user', () => {
     displayName,
     email,
     phone,
+    avatarUrl,
     // Actions
     setUser,
     loadUserProfile,
     updateProfile,
     clearError,
+    setPendingDisplayName,
   }
 })
