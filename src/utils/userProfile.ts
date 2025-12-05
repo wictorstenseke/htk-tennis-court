@@ -115,7 +115,9 @@ export async function updateUserProfile(
       if (partialProfile.phone.trim()) {
         // Validate phone number format
         if (!validatePhoneNumber(partialProfile.phone)) {
-          throw new Error('Ogiltigt telefonnummer. Använd formatet +46 70 123 45 67 eller 070-123 45 67')
+          throw new Error(
+            'Ogiltigt telefonnummer. Använd formatet +46 70 123 45 67 eller 070-123 45 67'
+          )
         }
         // Format to normalized international format
         updateData.phone = formatPhoneNumber(partialProfile.phone)

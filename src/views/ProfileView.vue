@@ -162,7 +162,6 @@ const showSuccess = ref(false)
 const phoneError = ref('')
 
 const displayName = computed(() => userStore.displayName)
-const email = computed(() => userStore.email)
 const avatarUrl = computed(() => userStore.avatarUrl)
 
 // Check if form has changes
@@ -203,7 +202,8 @@ watch(
 function validatePhoneOnBlur() {
   phoneError.value = ''
   if (formData.value.phone.trim() && !validatePhoneNumber(formData.value.phone)) {
-    phoneError.value = 'Ogiltigt telefonnummer. Använd formatet +46 70 123 45 67 eller 070-123 45 67'
+    phoneError.value =
+      'Ogiltigt telefonnummer. Använd formatet +46 70 123 45 67 eller 070-123 45 67'
   }
 }
 
@@ -220,7 +220,8 @@ async function handleSubmit() {
 
   // Validate phone if provided
   if (formData.value.phone.trim() && !validatePhoneNumber(formData.value.phone)) {
-    phoneError.value = 'Ogiltigt telefonnummer. Använd formatet +46 70 123 45 67 eller 070-123 45 67'
+    phoneError.value =
+      'Ogiltigt telefonnummer. Använd formatet +46 70 123 45 67 eller 070-123 45 67'
     return
   }
 
@@ -245,4 +246,3 @@ async function handleSubmit() {
   }
 }
 </script>
-

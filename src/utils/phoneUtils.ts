@@ -88,4 +88,3 @@ export function validatePhoneNumber(phone: string): boolean {
   // For other international formats, just check it has reasonable length
   return formatted.length >= 8 && formatted.length <= 15
 }
-

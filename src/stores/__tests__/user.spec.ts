@@ -3,6 +3,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import { useUserStore } from '../user'
 import * as userProfileUtils from '@/utils/userProfile'
 import { createMockUser, createMockUserProfile } from '@/test-utils/firebase-mocks'
+import type { UserProfileRead } from '@/types/user'
 
 vi.mock('@/utils/userProfile')
 
@@ -81,7 +82,10 @@ describe('useUserStore', () => {
 
       await store.setUser(mockUser, 'Test Player')
 
-      expect(userProfileUtils.createUserProfileFromAuth).toHaveBeenCalledWith(mockUser, 'Test Player')
+      expect(userProfileUtils.createUserProfileFromAuth).toHaveBeenCalledWith(
+        mockUser,
+        'Test Player'
+      )
       expect(store.userProfile).toStrictEqual(mockProfile)
     })
 
@@ -96,7 +100,10 @@ describe('useUserStore', () => {
 
       await store.setUser(mockUser)
 
-      expect(userProfileUtils.createUserProfileFromAuth).toHaveBeenCalledWith(mockUser, 'Pending Name')
+      expect(userProfileUtils.createUserProfileFromAuth).toHaveBeenCalledWith(
+        mockUser,
+        'Pending Name'
+      )
       expect(store.userProfile).toStrictEqual(mockProfile)
     })
   })
@@ -128,7 +135,10 @@ describe('useUserStore', () => {
 
       await store.loadUserProfile('user-id', 'Test Player')
 
-      expect(userProfileUtils.createUserProfileFromAuth).toHaveBeenCalledWith(mockUser, 'Test Player')
+      expect(userProfileUtils.createUserProfileFromAuth).toHaveBeenCalledWith(
+        mockUser,
+        'Test Player'
+      )
       expect(store.userProfile).toStrictEqual(mockProfile)
     })
 
@@ -241,9 +251,15 @@ describe('useUserStore', () => {
     it('should generate avatarUrl from email when not in profile', () => {
       const store = useUserStore()
       const mockProfile = createMockUserProfile({ email: 'test@example.com' })
-      delete (mockProfile as any).avatarUrl
+      // Create profile without avatarUrl to test fallback
+      const profileWithoutAvatar: UserProfileRead = {
+        displayName: mockProfile.displayName,
+        email: mockProfile.email,
+        phone: mockProfile.phone,
+        createdAt: mockProfile.createdAt,
+      }
+      store.userProfile = profileWithoutAvatar
 
-      store.userProfile = mockProfile
       expect(store.avatarUrl).toContain('gravatar.com')
       expect(store.avatarUrl).toContain('/avatar/')
     })
