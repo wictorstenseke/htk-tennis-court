@@ -2,13 +2,12 @@
 
 ## Feature Status Overview
 
-### 📋 Planned (19 features)
+### 📋 Planned (18 features)
 
 **Core Booking Features**
 - 4. Highlight my own bookings
 - 5. Quick suggested booking times + "Choose time" manual option
 - 6. Preferred booking duration in profile
-- 14. Edit existing bookings
 - 15. Opponent support in bookings
 - 16. View booking history
 
@@ -33,12 +32,13 @@
 **Public Pages**
 - 13. About the club – Membership via Swish
 
-### ✅ Implemented (10 features)
+### ✅ Implemented (11 features)
 
 **Core Booking Features**
 - 1. Booking: Logged-in player books the court
 - 2. Booking: Cancel my booking
 - 3. Public schedule (no login)
+- 14. Edit existing bookings
 
 **User Features**
 - 7. User profile: Spelarnamn, phone, Gravatar
@@ -118,8 +118,8 @@ As a logged-in player, I want my own bookings to be clearly highlighted.
 
 ---
 
-## 5. Quick suggested booking times + “Choose time” manual option  
-**Status:** [Planned]
+## 5. Quick suggested booking times + "Choose time" manual option  
+**Status:** [Started]
 
 **Description**  
 As a player, I want fast one-click booking suggestions, with the option to manually choose time.
@@ -149,26 +149,40 @@ As a player, I want to set my preferred booking duration (e.g. 60/90/120 minutes
 ---
 
 ## 14. Edit existing bookings  
-**Status:** [Planned]
+**Status:** [Implemented]
 
 **Description**  
 As a logged-in player, I want to edit my existing bookings to change the time or date if needed.
 
 **Acceptance Criteria**
-1. Only the player who booked the time sees an "Edit" button.  
-2. Edit opens a modal with current booking details pre-filled.  
-3. Overlap validation prevents editing to times that conflict with other bookings.  
-4. Only involved players can edit the booking.  
-5. Security rules ensure only authorized players can perform edits.  
-6. UI updates immediately after successful edit.
+1. ✅ Only the player who booked the time sees an "Edit" button.  
+2. ✅ Edit opens a modal with current booking details pre-filled.  
+3. ✅ Overlap validation prevents editing to times that conflict with other bookings (excludes current booking from overlap check).  
+4. ✅ Only involved players can edit the booking.  
+5. ✅ Security rules ensure only authorized players can perform edits.  
+6. ✅ UI updates immediately after successful edit.
 
 ---
 
 ## 15. Opponent support in bookings  
-**Status:** [Planned]
+**Status:** [Planned - Backend Partially Implemented]
 
 **Description**  
 As a player, I want to optionally add an opponent to my booking so others can see who I'm playing with.
+
+**Backend Implementation Status**  
+✅ Backend infrastructure is already in place:
+- `opponentUserId` field exists in Booking type and can be stored/updated
+- Security rules support `opponentUserId` field (users can edit bookings where they are the opponent)
+- `getInvolvedBookings()` function queries bookings where user is creator OR opponent
+- `canEditBooking()` checks if user is creator or opponent
+- `createBooking()` and `updateBooking()` support `opponentUserId` parameter
+
+**Remaining Work**  
+❌ UI implementation needed:
+- Add opponent selection field to BookingModal
+- Display opponent information in booking lists ("Player 1 vs Player 2" format)
+- Allow opponent selection when editing existing bookings
 
 **Acceptance Criteria**
 1. Booking modal includes optional "Opponent" field.  
