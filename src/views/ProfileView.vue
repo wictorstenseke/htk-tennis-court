@@ -100,6 +100,28 @@
                 </label>
               </div>
 
+              <!-- Preferred Booking Duration -->
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">Föredragen bokningstid</span>
+                </label>
+                <select
+                  v-model="formData.preferredBookingLengthMinutes"
+                  class="select select-bordered w-full"
+                  :disabled="isSaving"
+                >
+                  <option :value="undefined">Standard (2 timmar)</option>
+                  <option :value="60">1 timme</option>
+                  <option :value="90">1,5 timme</option>
+                  <option :value="120">2 timmar</option>
+                </select>
+                <label class="label">
+                  <span class="label-text-alt text-base-content/70"
+                    >Används för att automatiskt fylla i sluttid vid nya bokningar</span
+                  >
+                </label>
+              </div>
+
               <!-- Form actions -->
               <div class="form-control mt-6">
                 <button type="submit" class="btn btn-primary" :disabled="isSaving || !hasChanges">
@@ -125,6 +147,7 @@ const userStore = useUserStore()
 const formData = ref({
   displayName: '',
   phone: '',
+  preferredBookingLengthMinutes: undefined as number | undefined,
 })
 
 const isSaving = ref(false)
@@ -135,9 +158,12 @@ const displayName = computed(() => userStore.displayName)
 
 // Check if form has changes
 const hasChanges = computed(() => {
+  const profile = userStore.userProfile
   return (
     formData.value.displayName !== displayName.value ||
-    formData.value.phone !== (userStore.phone || '')
+    formData.value.phone !== (userStore.phone || '') ||
+    formData.value.preferredBookingLengthMinutes !==
+      (profile?.preferredBookingLengthMinutes ?? undefined)
   )
 })
 
@@ -156,10 +182,13 @@ watch(
     if (profile) {
       formData.value.displayName = profile.displayName
       formData.value.phone = profile.phone || ''
+      formData.value.preferredBookingLengthMinutes =
+        profile.preferredBookingLengthMinutes ?? undefined
     } else {
       // Reset form if profile is cleared
       formData.value.displayName = ''
       formData.value.phone = ''
+      formData.value.preferredBookingLengthMinutes = undefined
     }
   },
   { immediate: true }
@@ -198,6 +227,7 @@ async function handleSubmit() {
     await userStore.updateProfile({
       displayName: formData.value.displayName.trim(),
       phone: formData.value.phone.trim(),
+      preferredBookingLengthMinutes: formData.value.preferredBookingLengthMinutes,
     })
 
     // Show success message
