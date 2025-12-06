@@ -151,6 +151,24 @@ export async function updateUserProfile(
       updateData.sidebarState = partialProfile.sidebarState
     }
 
+    if (partialProfile.preferredBookingLengthMinutes !== undefined) {
+      // Validate preferredBookingLengthMinutes value
+      const validDurations = [60, 90, 120]
+      if (
+        partialProfile.preferredBookingLengthMinutes !== null &&
+        !validDurations.includes(partialProfile.preferredBookingLengthMinutes)
+      ) {
+        throw new Error(
+          `Invalid preferredBookingLengthMinutes. Must be one of: ${validDurations.join(', ')}`
+        )
+      }
+      // Store as undefined if null (to allow clearing the preference)
+      updateData.preferredBookingLengthMinutes =
+        partialProfile.preferredBookingLengthMinutes === null
+          ? undefined
+          : partialProfile.preferredBookingLengthMinutes
+    }
+
     // Ensure we have at least one field to update
     if (Object.keys(updateData).length === 0) {
       throw new Error('No valid fields to update')

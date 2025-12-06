@@ -38,37 +38,48 @@ service cloud.firestore {
         && request.resource.data.role is string
         && request.resource.data.role in ['superuser', 'admin', 'user']
         && (!('phone' in request.resource.data) || request.resource.data.phone is string)
-        && (!('avatarUrl' in request.resource.data) || request.resource.data.avatarUrl is string);
+        && (!('avatarUrl' in request.resource.data) || request.resource.data.avatarUrl is string)
+        && (!('preferredBookingLengthMinutes' in request.resource.data) 
+            || (request.resource.data.preferredBookingLengthMinutes is int
+                && request.resource.data.preferredBookingLengthMinutes in [60, 90, 120]));
       
-      // Users can update their own profile (displayName, phone, and sidebarState)
+      // Users can update their own profile (displayName, phone, sidebarState, and preferredBookingLengthMinutes)
       // SuperUsers can also update role field (for any user)
       allow update: if request.auth != null && (
-        // Case 1: Regular users updating their own displayName, phone, and/or sidebarState (no role changes)
+        // Case 1: Regular users updating their own displayName, phone, sidebarState, and/or preferredBookingLengthMinutes (no role changes)
         (request.auth.uid == userId
           && !('role' in request.resource.data.diff(resource.data).affectedKeys())
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'phone', 'sidebarState'])
-          && (!('displayName' in request.resource.data.diff(resource.data).affectedKeys()) 
-              || (request.resource.data.displayName is string && request.resource.data.displayName.size() > 0))
-          && (!('phone' in request.resource.data.diff(resource.data).affectedKeys()) 
-              || request.resource.data.phone is string)
-          && (!('sidebarState' in request.resource.data.diff(resource.data).affectedKeys())
-              || request.resource.data.sidebarState in ['expanded', 'collapsed', 'hover']))
-        ||
-        // Case 2: SuperUsers updating role field (for any user, including themselves)
-        (isSuperUser()
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role'])
-          && request.resource.data.role in ['superuser', 'admin', 'user'])
-        ||
-        // Case 3: SuperUsers updating their own profile with displayName, phone, sidebarState, and/or role
-        (isSuperUser()
-          && request.auth.uid == userId
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'phone', 'sidebarState', 'role'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'phone', 'sidebarState', 'preferredBookingLengthMinutes'])
           && (!('displayName' in request.resource.data.diff(resource.data).affectedKeys()) 
               || (request.resource.data.displayName is string && request.resource.data.displayName.size() > 0))
           && (!('phone' in request.resource.data.diff(resource.data).affectedKeys()) 
               || request.resource.data.phone is string)
           && (!('sidebarState' in request.resource.data.diff(resource.data).affectedKeys())
               || request.resource.data.sidebarState in ['expanded', 'collapsed', 'hover'])
+          && (!('preferredBookingLengthMinutes' in request.resource.data.diff(resource.data).affectedKeys())
+              || (request.resource.data.preferredBookingLengthMinutes == null
+                  || (request.resource.data.preferredBookingLengthMinutes is int
+                      && request.resource.data.preferredBookingLengthMinutes in [60, 90, 120]))))
+        ||
+        // Case 2: SuperUsers updating role field (for any user, including themselves)
+        (isSuperUser()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role'])
+          && request.resource.data.role in ['superuser', 'admin', 'user'])
+        ||
+        // Case 3: SuperUsers updating their own profile with displayName, phone, sidebarState, preferredBookingLengthMinutes, and/or role
+        (isSuperUser()
+          && request.auth.uid == userId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'phone', 'sidebarState', 'preferredBookingLengthMinutes', 'role'])
+          && (!('displayName' in request.resource.data.diff(resource.data).affectedKeys()) 
+              || (request.resource.data.displayName is string && request.resource.data.displayName.size() > 0))
+          && (!('phone' in request.resource.data.diff(resource.data).affectedKeys()) 
+              || request.resource.data.phone is string)
+          && (!('sidebarState' in request.resource.data.diff(resource.data).affectedKeys())
+              || request.resource.data.sidebarState in ['expanded', 'collapsed', 'hover'])
+          && (!('preferredBookingLengthMinutes' in request.resource.data.diff(resource.data).affectedKeys())
+              || (request.resource.data.preferredBookingLengthMinutes == null
+                  || (request.resource.data.preferredBookingLengthMinutes is int
+                      && request.resource.data.preferredBookingLengthMinutes in [60, 90, 120])))
           && (!('role' in request.resource.data.diff(resource.data).affectedKeys())
               || request.resource.data.role in ['superuser', 'admin', 'user']))
       );

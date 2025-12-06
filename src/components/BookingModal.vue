@@ -73,12 +73,16 @@ import { ref, computed, watch } from 'vue'
 import { Timestamp } from 'firebase/firestore'
 import { hasBookingOverlap, validateBookingTimeRange } from '@/utils/bookingValidation'
 import { useAppSettings } from '@/composables/useAppSettings'
+import { useUserStore } from '@/stores/user'
 import type { BookingRead } from '@/types/booking'
 
 interface Props {
   isOpen: boolean
   existingBookings: BookingRead[]
   editingBooking?: BookingRead | null
+  initialDate?: Date | null
+  initialStartTime?: Date | null
+  initialEndTime?: Date | null
 }
 
 interface Emits {
@@ -90,6 +94,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const { settings } = useAppSettings()
+const userStore = useUserStore()
 
 const modalRef = ref<HTMLDialogElement | null>(null)
 const selectedDate = ref('')
@@ -112,6 +117,35 @@ function formatTimeForInput(date: Date): string {
   return `${hours}:${minutes}`
 }
 
+// Get preferred booking duration (defaults to 120 minutes / 2 timmar)
+const preferredDuration = computed(() => {
+  return userStore.userProfile?.preferredBookingLengthMinutes ?? 120
+})
+
+// Auto-fill end time when start time changes (only for new bookings, not editing)
+watch(
+  [startTime, () => props.isOpen, () => props.editingBooking],
+  ([newStartTime, isOpen, editingBooking]) => {
+    // Only auto-fill for new bookings (not editing) when modal is open
+    if (isOpen && !editingBooking && newStartTime && !endTime.value && selectedDate.value) {
+      try {
+        const [hours, minutes] = newStartTime.split(':').map(Number)
+        const startDate = new Date(selectedDate.value)
+        startDate.setHours(hours, minutes, 0, 0)
+
+        // Calculate end time by adding preferred duration
+        const endDate = new Date(startDate)
+        endDate.setMinutes(endDate.getMinutes() + preferredDuration.value)
+
+        endTime.value = formatTimeForInput(endDate)
+      } catch (error) {
+        // Silently fail if date parsing fails
+        console.error('Error auto-filling end time:', error)
+      }
+    }
+  }
+)
+
 // Reset form when modal opens
 watch(
   () => props.isOpen,
@@ -125,6 +159,22 @@ watch(
         selectedDate.value = startDate.toISOString().split('T')[0]
         startTime.value = formatTimeForInput(startDate)
         endTime.value = formatTimeForInput(endDate)
+      } else if (props.initialDate && props.initialStartTime) {
+        // Prefill form with initial values (from time slot selection)
+        // Format date as YYYY-MM-DD without timezone issues
+        const year = props.initialDate.getFullYear()
+        const month = String(props.initialDate.getMonth() + 1).padStart(2, '0')
+        const day = String(props.initialDate.getDate()).padStart(2, '0')
+        selectedDate.value = `${year}-${month}-${day}`
+        startTime.value = formatTimeForInput(props.initialStartTime)
+        if (props.initialEndTime) {
+          endTime.value = formatTimeForInput(props.initialEndTime)
+        } else {
+          // Auto-calculate end time based on preferred duration
+          const endDate = new Date(props.initialStartTime)
+          endDate.setMinutes(endDate.getMinutes() + preferredDuration.value)
+          endTime.value = formatTimeForInput(endDate)
+        }
       } else {
         // Reset form for new booking
         const today = new Date()

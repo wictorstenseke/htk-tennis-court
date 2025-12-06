@@ -174,7 +174,6 @@
         <ul class="menu py-0">
           <li class="dropdown dropdown-top">
             <div
-              ref="dropdownTrigger"
               tabindex="0"
               role="button"
               class="flex items-center gap-3 py-2 rounded-lg px-3 cursor-pointer w-full"
@@ -197,11 +196,11 @@
             </div>
             <ul
               tabindex="0"
-              class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow-lg mb-2 border border-base-300"
+              class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
             >
               <li>
                 <label class="label cursor-pointer">
-                  <span class="label-text">Expanded</span>
+                  <span class="label-text">Expandera meny</span>
                   <input
                     type="radio"
                     name="sidebar-state"
@@ -213,7 +212,7 @@
               </li>
               <li>
                 <label class="label cursor-pointer">
-                  <span class="label-text">Collapsed</span>
+                  <span class="label-text">Dölj meny</span>
                   <input
                     type="radio"
                     name="sidebar-state"
@@ -225,7 +224,7 @@
               </li>
               <li>
                 <label class="label cursor-pointer">
-                  <span class="label-text">Expand on hover</span>
+                  <span class="label-text">Auto-expandera</span>
                   <input
                     type="radio"
                     name="sidebar-state"
@@ -256,7 +255,6 @@ const isAuthenticated = computed(() => userStore.isAuthenticated)
 const sidebarState = ref<SidebarState>('expanded')
 const isCollapsed = ref(false)
 const isHovering = ref(false)
-const dropdownTrigger = ref<HTMLElement | null>(null)
 
 const emit = defineEmits<{
   widthChange: [width: number]

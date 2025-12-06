@@ -83,6 +83,7 @@ export const useUserStore = defineStore('user', () => {
     displayName?: string
     phone?: string
     sidebarState?: import('@/types/user').SidebarState
+    preferredBookingLengthMinutes?: number
   }) {
     if (!currentUser.value) {
       throw new Error('No user is currently authenticated')

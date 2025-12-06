@@ -21,6 +21,7 @@ export interface UserProfile {
   avatarUrl?: string // optional Gravatar URL for convenience
   role: UserRole // user role: 'superuser' | 'admin' | 'user'
   sidebarState?: SidebarState // user preference for sidebar state
+  preferredBookingLengthMinutes?: number // preferred booking duration (60, 90, or 120 minutes)
   createdAt: FieldValue // set with serverTimestamp() on creation
 }
 
@@ -36,6 +37,7 @@ export interface UserProfileRead {
   avatarUrl?: string
   role?: UserRole // optional for backward compatibility with existing users
   sidebarState?: SidebarState // user preference for sidebar state
+  preferredBookingLengthMinutes?: number // preferred booking duration (60, 90, or 120 minutes)
   createdAt: Timestamp
 }
 
@@ -43,6 +45,7 @@ export interface UserProfileUpdate {
   displayName?: string
   phone?: string
   sidebarState?: SidebarState
+  preferredBookingLengthMinutes?: number
 }
 
 /**
