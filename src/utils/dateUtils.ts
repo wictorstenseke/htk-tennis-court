@@ -52,6 +52,28 @@ export function formatBookingDateTime(startTime: Timestamp, endTime: Timestamp):
 }
 
 /**
+ * Format time range for display (without date)
+ * Format: "10.00-11.00"
+ */
+export function formatTimeRange(startTime: Timestamp, endTime: Timestamp): string {
+  const startTimeStr = formatBookingTime(startTime)
+  const endTimeStr = formatBookingTime(endTime)
+  return `${startTimeStr}-${endTimeStr}`
+}
+
+/**
+ * Get a date key for grouping bookings by day
+ * Format: "YYYY-MM-DD"
+ */
+export function getDateKey(timestamp: Timestamp): string {
+  const date = timestamp.toDate()
+  const year = date.getFullYear()
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const day = date.getDate().toString().padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+/**
  * Get start and end of day as Timestamps
  */
 export function getDayBounds(date: Date): { start: Date; end: Date } {

@@ -188,7 +188,7 @@
             >
               <li>
                 <label class="label cursor-pointer">
-                  <span class="label-text">Expanded</span>
+                  <span class="label-text">Expandera meny</span>
                   <input
                     type="radio"
                     name="sidebar-state"
@@ -200,7 +200,7 @@
               </li>
               <li>
                 <label class="label cursor-pointer">
-                  <span class="label-text">Collapsed</span>
+                  <span class="label-text">Dölj meny</span>
                   <input
                     type="radio"
                     name="sidebar-state"
@@ -212,7 +212,7 @@
               </li>
               <li>
                 <label class="label cursor-pointer">
-                  <span class="label-text">Expand on hover</span>
+                  <span class="label-text">Auto-expandera</span>
                   <input
                     type="radio"
                     name="sidebar-state"
