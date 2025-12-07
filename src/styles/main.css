@@ -4,3 +4,40 @@
   root: ":root";
   logs: false;
 }
+
+/* Remove today's date highlight in cally calendars using CSS custom properties */
+.cally,
+.cally calendar-month {
+  --color-accent: transparent;
+}
+
+/* Remove today's date highlight using part selectors */
+.cally::part(today),
+.cally calendar-month::part(today) {
+  background-color: transparent !important;
+  background: transparent !important;
+  color: inherit !important;
+  font-weight: normal !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Remove today's date highlight in cally calendars - attribute selectors */
+.cally [today],
+.cally [today]:hover,
+.cally calendar-month [today],
+.cally calendar-month [today]:hover,
+.cally calendar-month button[today],
+.cally calendar-month button[today]:hover,
+.cally button[today],
+.cally button[today]:hover,
+.cally *[today] {
+  background-color: transparent !important;
+  background: transparent !important;
+  color: inherit !important;
+  font-weight: normal !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
