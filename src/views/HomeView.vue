@@ -915,34 +915,6 @@ function handleStartTimeInputChange(newValue: string) {
   calculateAvailableTimes()
 }
 
-function handleStartTimeBlur(event: Event) {
-  const target = event.target as HTMLInputElement
-  let value = target.value.trim()
-
-  if (!value) {
-    return
-  }
-
-  // Ensure proper formatting on blur
-  const timeMatch = value.match(/^(\d{1,2})[:.]?(\d{0,2})?$/)
-  if (timeMatch) {
-    let hours = parseInt(timeMatch[1]) || 0
-    let minutes = parseInt(timeMatch[2] || '0') || 0
-
-    // Validate hours and minutes
-    if (hours > 23) hours = 23
-    if (hours < 0) hours = 0
-    if (minutes > 59) minutes = 59
-    if (minutes < 0) minutes = 0
-
-    // Format as HH:mm
-    const formatted = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
-    startTimeInput.value = formatted
-    if (target.type === 'time') {
-      target.value = formatted
-    }
-  }
-}
 
 function calculateAvailableTimes() {
   if (!selectedDate.value || !startTimeInput.value) {
