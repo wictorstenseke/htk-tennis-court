@@ -148,30 +148,32 @@
         </div>
 
         <!-- Bookings list -->
-        <div v-else-if="bookedBookings.length > 0" class="space-y-1">
+        <div v-else-if="bookedBookings.length > 0" class="space-y-2">
           <div
             v-for="booking in bookedBookings"
             :key="booking.id"
-            class="flex items-center justify-between py-2 px-4 bg-base-200 rounded-lg"
+            class="card card-bordered bg-base-200"
           >
-            <div class="flex-1 flex flex-wrap items-center gap-x-2">
-              <span class="text-sm font-medium">
-                {{ formatBookingDateTime(booking.startTime, booking.endTime) }}
-              </span>
-              <!-- Only show user name if authenticated -->
-              <span
-                v-if="isAuthenticated"
-                class="text-sm font-semibold text-primary whitespace-nowrap"
-              >
-                {{ getUserDisplayName(booking.userId) }}
-              </span>
-            </div>
-            <!-- More menu - only show for user's own bookings when authenticated -->
-            <div
-              v-if="isAuthenticated && isMyBooking(booking)"
-              class="dropdown dropdown-end flex items-center"
-            >
-              <div tabindex="0" role="button" class="btn btn-ghost btn-xs btn-circle">
+            <div class="card-body p-4">
+              <div class="flex items-center justify-between gap-4">
+                <div class="flex-1 flex flex-wrap items-center gap-x-3">
+                  <span class="text-sm font-medium text-base-content">
+                    {{ formatBookingDateTime(booking.startTime, booking.endTime) }}
+                  </span>
+                  <!-- Only show user name if authenticated -->
+                  <span
+                    v-if="isAuthenticated"
+                    class="badge badge-primary badge-sm whitespace-nowrap"
+                  >
+                    {{ getUserDisplayName(booking.userId) }}
+                  </span>
+                </div>
+                <!-- More menu - only show for user's own bookings when authenticated -->
+                <div
+                  v-if="isAuthenticated && isMyBooking(booking)"
+                  class="dropdown dropdown-end"
+                >
+                  <div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-circle">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="h-5 w-5"
@@ -187,10 +189,10 @@
                   />
                 </svg>
               </div>
-              <ul
-                tabindex="0"
-                class="dropdown-content menu bg-base-100 rounded-box z-[1] w-32 p-2 shadow"
-              >
+                  <ul
+                    tabindex="0"
+                    class="dropdown-content menu bg-base-100 rounded-box z-[1] w-32 p-2 shadow-lg border border-base-300"
+                  >
                 <li>
                   <a @click.prevent="handleEditBooking(booking)" class="text-sm">
                     <svg
@@ -228,8 +230,10 @@
                     </svg>
                     Ta bort
                   </a>
-                </li>
-              </ul>
+                  </li>
+                </ul>
+              </div>
+              </div>
             </div>
           </div>
         </div>

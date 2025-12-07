@@ -2,12 +2,12 @@
   <dialog ref="modalRef" class="modal" :class="{ 'modal-open': isOpen }">
     <div class="modal-box">
       <!-- Header -->
-      <h2 class="card-title justify-center text-3xl mb-4">
+      <h2 class="font-bold text-2xl mb-6 text-center">
         {{ isSignUp ? 'Skapa konto' : 'Logga in' }}
       </h2>
 
       <!-- Error Message -->
-      <div v-if="error || localError" class="alert alert-error mb-4">
+      <div v-if="error || localError" class="alert alert-error mb-6">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="stroke-current shrink-0 h-6 w-6"
@@ -25,7 +25,7 @@
       </div>
 
       <!-- Success Message (for password reset) -->
-      <div v-if="resetEmailSent" class="alert alert-success mb-4">
+      <div v-if="resetEmailSent" class="alert alert-success mb-6">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="stroke-current shrink-0 h-6 w-6"
@@ -43,10 +43,10 @@
       </div>
 
       <!-- Forgot Password Form -->
-      <form v-if="showForgotPassword" @submit.prevent="handleForgotPassword" class="space-y-4">
-        <div class="form-control">
+      <form v-if="showForgotPassword" @submit.prevent="handleForgotPassword" class="space-y-6">
+        <div class="form-control w-full">
           <label class="label">
-            <span class="label-text">E-postadress</span>
+            <span class="label-text font-medium">E-postadress</span>
           </label>
           <input
             v-model="email"
@@ -58,13 +58,13 @@
         </div>
 
         <div class="form-control mt-6">
-          <button type="submit" class="btn btn-primary" :disabled="isLoading">
+          <button type="submit" class="btn btn-primary w-full" :disabled="isLoading">
             <span v-if="isLoading" class="loading loading-spinner loading-sm"></span>
-            Skicka återställningslänk
+            <span v-else>Skicka återställningslänk</span>
           </button>
         </div>
 
-        <div class="text-center mt-4">
+        <div class="text-center">
           <button type="button" class="link link-primary" @click="showForgotPassword = false">
             Tillbaka till inloggning
           </button>
@@ -72,10 +72,10 @@
       </form>
 
       <!-- Sign In / Sign Up Form -->
-      <form v-else @submit.prevent="handleSubmit" class="space-y-4">
-        <div class="form-control">
+      <form v-else @submit.prevent="handleSubmit" class="space-y-6">
+        <div class="form-control w-full">
           <label class="label">
-            <span class="label-text">E-postadress</span>
+            <span class="label-text font-medium">E-postadress</span>
           </label>
           <input
             v-model="email"
@@ -86,9 +86,9 @@
           />
         </div>
 
-        <div v-if="isSignUp" class="form-control">
+        <div v-if="isSignUp" class="form-control w-full">
           <label class="label">
-            <span class="label-text">Spelarnamn</span>
+            <span class="label-text font-medium">Spelarnamn</span>
             <span class="label-text-alt text-error">*</span>
           </label>
           <input
@@ -100,9 +100,9 @@
           />
         </div>
 
-        <div class="form-control">
+        <div class="form-control w-full">
           <label class="label">
-            <span class="label-text">Lösenord</span>
+            <span class="label-text font-medium">Lösenord</span>
           </label>
           <div class="relative">
             <input
@@ -162,15 +162,15 @@
         </div>
 
         <div class="form-control mt-6">
-          <button type="submit" class="btn btn-primary" :disabled="isLoading">
+          <button type="submit" class="btn btn-primary w-full" :disabled="isLoading">
             <span v-if="isLoading" class="loading loading-spinner loading-sm"></span>
-            {{ isSignUp ? 'Skapa konto' : 'Logga in' }}
+            <span v-else>{{ isSignUp ? 'Skapa konto' : 'Logga in' }}</span>
           </button>
         </div>
 
         <div class="divider">ELLER</div>
 
-        <div class="text-center space-y-2">
+        <div class="text-center space-y-3">
           <button type="button" class="link link-primary" @click="isSignUp = !isSignUp">
             {{ isSignUp ? 'Har du redan ett konto? Logga in' : 'Inget konto? Skapa ett här' }}
           </button>
@@ -188,8 +188,8 @@
       </form>
 
       <!-- Modal Actions -->
-      <div class="modal-action">
-        <button type="button" class="btn" @click="handleClose">Stäng</button>
+      <div class="modal-action mt-6">
+        <button type="button" class="btn btn-ghost" @click="handleClose">Stäng</button>
       </div>
     </div>
     <form method="dialog" class="modal-backdrop" @click="handleClose">

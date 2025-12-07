@@ -3,10 +3,10 @@
     <div
       tabindex="0"
       role="button"
-      class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-base-200 transition-colors cursor-pointer"
+      class="btn btn-ghost flex items-center gap-3"
       @click="toggleDropdown"
     >
-      <span class="font-medium">{{ displayName }}</span>
+      <span class="font-medium hidden sm:inline">{{ displayName }}</span>
       <div class="avatar">
         <div class="w-10 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
           <img :src="avatarUrl" :alt="displayName" />
@@ -16,10 +16,10 @@
     <ul
       v-show="isOpen"
       tabindex="0"
-      class="dropdown-content menu bg-base-200 rounded-box z-[1] w-52 p-2 shadow-lg mt-2"
+      class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow-lg mt-2 border border-base-300"
     >
       <li>
-        <RouterLink to="/profile" class="flex items-center gap-2" @click="closeDropdown">
+        <RouterLink to="/profile" class="flex items-center gap-3" @click="closeDropdown">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-5 w-5"
@@ -38,7 +38,7 @@
         </RouterLink>
       </li>
       <li v-if="isAdmin">
-        <RouterLink to="/admin" class="flex items-center gap-2" @click="closeDropdown">
+        <RouterLink to="/admin" class="flex items-center gap-3" @click="closeDropdown">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-5 w-5"
@@ -63,7 +63,7 @@
         </RouterLink>
       </li>
       <li>
-        <button @click="handleSignOut" class="flex items-center gap-2 text-error">
+        <button @click="handleSignOut" class="flex items-center gap-3 text-error">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-5 w-5"
