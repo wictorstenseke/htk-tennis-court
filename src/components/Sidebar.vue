@@ -57,7 +57,7 @@
             <RouterLink to="/admin" class="flex items-center gap-3" active-class="active">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6 flex-shrink-0"
+                class="h-6 w-6 shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -80,7 +80,7 @@
             <RouterLink to="/" class="flex items-center gap-3" active-class="active">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6 flex-shrink-0"
+                class="h-6 w-6 shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -108,7 +108,7 @@
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6 flex-shrink-0"
+                class="h-6 w-6 shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -131,7 +131,7 @@
             <RouterLink to="/profile" class="flex items-center gap-3" active-class="active">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6 flex-shrink-0"
+                class="h-6 w-6 shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -169,7 +169,7 @@
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6 flex-shrink-0"
+                class="h-6 w-6 shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -184,10 +184,10 @@
             </div>
             <ul
               tabindex="0"
-              class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow-lg mb-2 border border-base-300 menu-vertical"
+              class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-lg mb-2 border border-base-300 menu-vertical"
             >
               <li>
-                <label class="label cursor-pointer">
+                <label class="label cursor-pointer w-full flex justify-between">
                   <span class="label-text">Expandera meny</span>
                   <input
                     type="radio"
@@ -199,7 +199,7 @@
                 </label>
               </li>
               <li>
-                <label class="label cursor-pointer">
+                <label class="label cursor-pointer w-full flex justify-between">
                   <span class="label-text">Dölj meny</span>
                   <input
                     type="radio"
@@ -211,7 +211,7 @@
                 </label>
               </li>
               <li>
-                <label class="label cursor-pointer">
+                <label class="label cursor-pointer w-full flex justify-between">
                   <span class="label-text">Auto-expandera</span>
                   <input
                     type="radio"

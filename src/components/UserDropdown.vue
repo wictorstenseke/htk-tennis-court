@@ -1,22 +1,16 @@
 <template>
-  <div class="dropdown dropdown-end" v-if="displayName" ref="dropdownContainer">
-    <div
-      tabindex="0"
-      role="button"
-      class="btn btn-ghost flex items-center gap-3"
-      @click="toggleDropdown"
-    >
-      <span class="font-medium hidden sm:inline">{{ displayName }}</span>
-      <div class="avatar">
+  <details class="dropdown dropdown-end h-full" v-if="displayName" ref="dropdownRef">
+    <summary class="btn btn-ghost flex items-center gap-3 cursor-pointer h-full min-h-0 px-3">
+      <span class="font-medium hidden sm:inline whitespace-nowrap">{{ displayName }}</span>
+      <div class="avatar shrink-0">
         <div class="w-10 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
           <img :src="avatarUrl" :alt="displayName" />
         </div>
       </div>
-    </div>
+    </summary>
     <ul
-      v-show="isOpen"
       tabindex="0"
-      class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-lg mt-2 border border-base-300"
+      class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-lg mt-2 border border-base-300 menu-vertical"
     >
       <li>
         <RouterLink to="/profile" class="flex items-center gap-3" @click="closeDropdown">
@@ -63,7 +57,7 @@
         </RouterLink>
       </li>
       <li>
-        <button @click="handleSignOut" class="flex items-center gap-3 text-error">
+        <button @click="handleSignOut" class="flex items-center gap-3 text-error w-full">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-5 w-5"
@@ -82,13 +76,12 @@
         </button>
       </li>
     </ul>
-  </div>
+  </details>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import { onClickOutside } from '@vueuse/core'
 import { useUserStore } from '@/stores/user'
 import { useFirebaseAuth } from '@/composables/useFirebaseAuth'
 
@@ -96,24 +89,16 @@ const userStore = useUserStore()
 const router = useRouter()
 const { signOut } = useFirebaseAuth()
 
-const dropdownContainer = ref<HTMLElement | null>(null)
-const isOpen = ref(false)
+const dropdownRef = ref<HTMLDetailsElement | null>(null)
 
 const displayName = computed(() => userStore.displayName)
 const avatarUrl = computed(() => userStore.avatarUrl)
 const isAdmin = computed(() => userStore.isAdmin)
 
-// Close dropdown when clicking outside
-onClickOutside(dropdownContainer, () => {
-  isOpen.value = false
-})
-
-function toggleDropdown() {
-  isOpen.value = !isOpen.value
-}
-
 function closeDropdown() {
-  isOpen.value = false
+  if (dropdownRef.value) {
+    dropdownRef.value.removeAttribute('open')
+  }
 }
 
 async function handleSignOut() {
