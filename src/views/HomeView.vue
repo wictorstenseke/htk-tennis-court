@@ -83,20 +83,23 @@
             >
               {{ dateOption.label }}
             </button>
-            <button @click="showDatePicker = true" class="btn btn-sm btn-ghost text-sm">
-              Välj dag
-            </button>
+            <div class="dropdown dropdown-bottom">
+              <div tabindex="0" role="button" class="btn btn-sm btn-ghost text-sm">Välj dag</div>
+              <div
+                tabindex="0"
+                class="dropdown-content menu bg-base-100 rounded-box z-1 p-4 shadow-lg border border-base-300 mt-2"
+              >
+                <calendar-date
+                  :value="selectedDateInput"
+                  class="cally"
+                  :min="todayInput"
+                  @change="handleDatePickerChange"
+                >
+                  <calendar-month></calendar-month>
+                </calendar-date>
+              </div>
+            </div>
           </div>
-          <!-- Date picker input (hidden, shown when button clicked) -->
-          <input
-            v-if="showDatePicker"
-            v-model="selectedDateInput"
-            type="date"
-            class="input input-bordered mt-2"
-            :min="todayInput"
-            @change="handleDatePickerChange"
-            @blur="showDatePicker = false"
-          />
         </div>
 
         <!-- Start Time Input -->
@@ -234,92 +237,95 @@
             </h3>
 
             <!-- Bookings for this day -->
-            <div class="space-y-1">
+            <div class="space-y-2">
               <div
                 v-for="booking in group.bookings"
                 :key="booking.id"
-                class="flex items-center justify-between py-2 px-4 bg-base-200 rounded-lg"
+                class="card card-bordered bg-base-200"
               >
-                <div class="flex-1 flex flex-wrap items-center gap-x-2">
-                  <span class="text-sm font-medium">
-                    {{ formatTimeRange(booking.startTime, booking.endTime) }}
-                  </span>
-                  <!-- Only show user name if authenticated -->
-                  <span
-                    v-if="isAuthenticated"
-                    class="text-sm font-semibold text-primary whitespace-nowrap"
-                  >
-                    {{ getUserDisplayName(booking.userId) }}
-                  </span>
-                </div>
-                <!-- More menu - only show for bookings user can edit when authenticated -->
-                <div
-                  v-if="isAuthenticated && canEditBooking(booking)"
-                  class="dropdown dropdown-bottom dropdown-end flex items-center"
-                >
-                  <div
-                    tabindex="0"
-                    role="button"
-                    class="btn btn-xs bg-base-200 hover:bg-base-300 transition-colors border-none shadow-none"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+                <div class="card-body p-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <div class="flex-1 flex flex-wrap items-center gap-x-3">
+                      <span class="text-sm font-medium text-base-content">
+                        {{ formatTimeRange(booking.startTime, booking.endTime) }}
+                      </span>
+                      <!-- Only show user name if authenticated -->
+                      <span
+                        v-if="isAuthenticated"
+                        class="badge badge-primary badge-sm whitespace-nowrap"
+                      >
+                        {{ getUserDisplayName(booking.userId) }}
+                      </span>
+                    </div>
+                    <!-- More menu - only show for bookings user can edit when authenticated -->
+                    <div
+                      v-if="isAuthenticated && canEditBooking(booking)"
+                      class="dropdown dropdown-end"
                     >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                      />
-                    </svg>
+                      <div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-circle">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                          />
+                        </svg>
+                      </div>
+                      <ul
+                        tabindex="0"
+                        class="dropdown-content menu bg-base-100 rounded-box z-1 w-32 p-2 shadow-lg border border-base-300"
+                      >
+                        <li>
+                          <a @click.prevent="handleEditBooking(booking)" class="text-sm">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="h-4 w-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                            Redigera
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            @click.prevent="handleDeleteBooking(booking)"
+                            class="text-sm text-error"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="h-4 w-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                            Ta bort
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
                   </div>
-                  <ul
-                    tabindex="0"
-                    class="dropdown-content menu bg-base-100 rounded-box z-[1] w-32 p-2 shadow"
-                  >
-                    <li>
-                      <a @click.prevent="handleEditBooking(booking)" class="text-sm">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                          />
-                        </svg>
-                        Redigera
-                      </a>
-                    </li>
-                    <li>
-                      <a @click.prevent="handleDeleteBooking(booking)" class="text-sm text-error">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                        Ta bort
-                      </a>
-                    </li>
-                  </ul>
                 </div>
               </div>
             </div>
@@ -430,7 +436,6 @@ const initialBookingEndTime = ref<Date | null>(null)
 
 // Date and time selection for "När vill du spela?"
 const selectedDate = ref<Date | null>(null)
-const showDatePicker = ref(false)
 const startTimeInput = ref('')
 const availableTimeSlots = ref<
   Array<{ startTime: string; displayTime: string; available: boolean }>
@@ -857,7 +862,6 @@ function selectDate(date: Date) {
   const normalizedDate = new Date(date)
   normalizedDate.setHours(0, 0, 0, 0)
   selectedDate.value = normalizedDate
-  showDatePicker.value = false
 
   // Recalculate available times if we have a start time
   if (startTimeInput.value) {
@@ -865,17 +869,19 @@ function selectDate(date: Date) {
   }
 }
 
-function handleDatePickerChange() {
-  if (selectedDateInput.value) {
+function handleDatePickerChange(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target && target.value) {
     // Parse the date string and normalize it
-    const dateString = selectedDateInput.value
+    const dateString = target.value
     const newDate = new Date(dateString + 'T00:00:00') // Add time to avoid timezone issues
     newDate.setHours(0, 0, 0, 0)
 
     // Ensure date is valid
     if (!isNaN(newDate.getTime())) {
       selectedDate.value = newDate
-      showDatePicker.value = false
+      // Update the computed property by setting its value
+      selectedDateInput.value = dateString
 
       // Recalculate available times if we have a start time
       if (startTimeInput.value) {

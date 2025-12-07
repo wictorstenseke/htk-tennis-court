@@ -3,10 +3,10 @@
     <div
       tabindex="0"
       role="button"
-      class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-base-200 transition-colors cursor-pointer"
+      class="btn btn-ghost flex items-center gap-3"
       @click="toggleDropdown"
     >
-      <span class="font-medium">{{ displayName }}</span>
+      <span class="font-medium hidden sm:inline">{{ displayName }}</span>
       <div class="avatar">
         <div class="w-10 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
           <img :src="avatarUrl" :alt="displayName" />
@@ -16,10 +16,29 @@
     <ul
       v-show="isOpen"
       tabindex="0"
-      class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
+      class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-lg mt-2 border border-base-300"
     >
       <li>
-        <RouterLink to="/profile" class="flex items-center gap-2" @click="closeDropdown">
+        <RouterLink to="/profile" class="flex items-center gap-3" @click="closeDropdown">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+            />
+          </svg>
+          Profilinställningar
+        </RouterLink>
+      </li>
+      <li v-if="isAdmin">
+        <RouterLink to="/admin" class="flex items-center gap-3" @click="closeDropdown">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-5 w-5"
@@ -40,30 +59,11 @@
               d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
             />
           </svg>
-          Profilinställningar
-        </RouterLink>
-      </li>
-      <li v-if="isAdmin">
-        <RouterLink to="/admin" class="flex items-center gap-2" @click="closeDropdown">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-            />
-          </svg>
           Admin
         </RouterLink>
       </li>
       <li>
-        <button @click="handleSignOut" class="flex items-center gap-2 text-error">
+        <button @click="handleSignOut" class="flex items-center gap-3 text-error">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-5 w-5"

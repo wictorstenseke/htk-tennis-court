@@ -1,0 +1,89 @@
+---
+description: Design system guidelines for DaisyUI components usage
+alwaysApply: true
+---
+
+# Design System Guidelines
+
+This document outlines the design system and component usage patterns for the HTK Tennis Court application using DaisyUI 5.
+
+## Component Standards
+
+### Buttons
+
+- Use `btn` class for all buttons
+- Primary actions: `btn btn-primary`
+- Secondary actions: `btn btn-ghost`
+- Button sizes: `btn-sm`, `btn-md` (default), `btn-lg`
+- Full width buttons: `btn btn-primary w-full`
+- Disabled state: `:disabled="condition"` with loading spinner when appropriate
+
+### Forms
+
+- Always wrap inputs in `form-control` with `w-full` for proper spacing
+- Use `label` with `label-text` and `font-medium` for labels
+- Input classes: `input input-bordered w-full`
+- Form spacing: Use `space-y-6` for vertical spacing between form fields
+- Grid layouts: Use `grid grid-cols-1 sm:grid-cols-2 gap-4` for responsive two-column layouts
+
+### Modals
+
+- Structure: `dialog` with `modal` class, `modal-box` for content, `modal-backdrop` for overlay
+- Header: Use `font-bold text-lg` or `text-2xl` with `mb-6` spacing
+- Actions: Use `modal-action` with `mt-6` for button spacing
+- Button order: Cancel/Close (ghost) on left, Primary action on right
+
+### Navigation
+
+- Navbar: Use `navbar` with `navbar-start` and `navbar-end` for positioning
+- Menu: Use `menu menu-vertical` for vertical menus, `menu-horizontal` for horizontal
+- Active states: Use `active` class for active menu items (DaisyUI handles styling)
+- Menu spacing: Use `gap-1` or `gap-2` for menu item spacing
+
+### Cards
+
+- Use `card card-bordered` for card containers
+- Card body: `card-body` with appropriate padding (`p-4`)
+- Background: `bg-base-200` for card backgrounds
+
+### Alerts
+
+- Error: `alert alert-error`
+- Success: `alert alert-success`
+- Info: `alert alert-info`
+- Always include appropriate SVG icons
+
+### Dropdowns
+
+- Structure: `dropdown dropdown-end` (or `dropdown-start`)
+- Trigger: Use `btn btn-ghost` for dropdown triggers
+- Content: `dropdown-content menu bg-base-100 rounded-box` with `shadow-lg` and `border border-base-300`
+- Menu items: Consistent `gap-3` for icon and text spacing
+
+### Spacing
+
+- Form fields: `space-y-6` for vertical spacing
+- Card content: `p-4` for padding
+- Section spacing: `mb-6` or `mb-12` for section margins
+- Button groups: `gap-2` or `gap-4` for horizontal spacing
+
+### Colors
+
+- Use DaisyUI semantic colors: `primary`, `secondary`, `accent`, `base-*`, `error`, `success`, `info`, `warning`
+- Text colors: `text-base-content` for primary text
+- Backgrounds: `bg-base-100` for main background, `bg-base-200` for elevated surfaces
+
+### Responsive Design
+
+- Use Tailwind responsive prefixes: `sm:`, `md:`, `lg:`
+- Grid layouts: `grid-cols-1 sm:grid-cols-2` for responsive columns
+- Hide/show: `hidden sm:inline` for responsive visibility
+
+## Best Practices
+
+1. **Consistency**: Always use DaisyUI classes instead of custom Tailwind utilities when possible
+2. **Spacing**: Use consistent spacing scale (4, 6, 8, 12, etc.)
+3. **Alignment**: Use flexbox utilities (`flex`, `items-center`, `justify-between`) for alignment
+4. **Icons**: Use consistent icon sizes (`h-5 w-5` for small, `h-6 w-6` for medium)
+5. **Loading States**: Use `loading loading-spinner loading-sm` for button loading states
+6. **Accessibility**: Always include proper ARIA labels and semantic HTML

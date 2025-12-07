@@ -50,15 +50,11 @@
       </div>
 
       <!-- Navigation Menu -->
-      <nav class="flex-1 overflow-y-auto py-4">
-        <ul class="menu py-0 flex flex-col gap-2">
+      <nav class="flex-1 overflow-y-auto py-4 px-2">
+        <ul class="menu menu-vertical w-full p-0 gap-1">
           <!-- Admin Page (only for admin users) -->
           <li v-if="isAdmin">
-            <RouterLink
-              to="/admin"
-              class="flex items-center gap-3 py-2 rounded-lg px-3"
-              active-class="!bg-primary !text-primary-content"
-            >
+            <RouterLink to="/admin" class="flex items-center gap-3" active-class="active">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-6 w-6 flex-shrink-0"
@@ -81,11 +77,7 @@
 
           <!-- Boka banan -->
           <li>
-            <RouterLink
-              to="/"
-              class="flex items-center gap-3 py-2 rounded-lg px-3"
-              active-class="!bg-primary !text-primary-content"
-            >
+            <RouterLink to="/" class="flex items-center gap-3" active-class="active">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-6 w-6 flex-shrink-0"
@@ -110,8 +102,8 @@
           <li>
             <RouterLink
               to="/tennisstege"
-              class="flex items-center gap-3 py-2 rounded-lg px-3 opacity-50 cursor-not-allowed"
-              active-class="!bg-primary !text-primary-content"
+              class="flex items-center gap-3 opacity-50 cursor-not-allowed"
+              active-class="active"
               @click.prevent
             >
               <svg
@@ -136,11 +128,7 @@
 
           <!-- Settings -->
           <li v-if="isAuthenticated">
-            <RouterLink
-              to="/profile"
-              class="flex items-center gap-3 py-2 rounded-lg px-3"
-              active-class="!bg-primary !text-primary-content"
-            >
+            <RouterLink to="/profile" class="flex items-center gap-3" active-class="active">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-6 w-6 flex-shrink-0"
@@ -170,13 +158,13 @@
       </nav>
 
       <!-- Sidebar Control Menu -->
-      <div v-if="isAuthenticated" class="border-t border-base-300 py-2">
-        <ul class="menu py-0">
+      <div v-if="isAuthenticated" class="border-t border-base-300 py-2 px-2">
+        <ul class="menu menu-vertical w-full p-0">
           <li class="dropdown dropdown-top">
             <div
               tabindex="0"
               role="button"
-              class="flex items-center gap-3 py-2 rounded-lg px-3 cursor-pointer w-full"
+              class="flex items-center gap-3 w-full"
               title="Sidebar control"
             >
               <svg
@@ -196,7 +184,7 @@
             </div>
             <ul
               tabindex="0"
-              class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
+              class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow-lg mb-2 border border-base-300 menu-vertical"
             >
               <li>
                 <label class="label cursor-pointer">
@@ -355,12 +343,9 @@ function handleMouseLeave() {
 </script>
 
 <style scoped lang="postcss">
-.menu li {
-  @apply p-0 m-0;
-}
+@reference "../styles/main.css";
 
-.menu li > a,
-.menu li > div > div[role='button'] {
-  @apply transition-colors hover:bg-base-300;
+.menu li > a.active {
+  @apply bg-primary text-primary-content;
 }
 </style>

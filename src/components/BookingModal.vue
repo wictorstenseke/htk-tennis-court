@@ -1,37 +1,43 @@
 <template>
   <dialog ref="modalRef" class="modal" :class="{ 'modal-open': isOpen }">
     <div class="modal-box">
-      <h3 class="font-bold text-lg mb-4">{{ isEditMode ? 'Redigera bokning' : 'Boka banan' }}</h3>
+      <!-- Header -->
+      <h3 class="font-bold text-lg mb-6">{{ isEditMode ? 'Redigera bokning' : 'Boka banan' }}</h3>
 
-      <form @submit.prevent="handleSubmit" class="space-y-4">
+      <form @submit.prevent="handleSubmit" class="space-y-6">
         <!-- Date picker -->
-        <div class="form-control">
+        <div class="form-control w-full">
           <label class="label">
-            <span class="label-text">Datum</span>
+            <span class="label-text font-medium">Datum</span>
           </label>
-          <input
-            v-model="selectedDate"
-            type="date"
-            class="input input-bordered w-full"
+          <calendar-date
+            :value="selectedDate"
+            class="cally w-full"
             :min="minDate"
             required
-          />
+            @change="handleDateChange"
+          >
+            <calendar-month></calendar-month>
+          </calendar-date>
         </div>
 
-        <!-- Start time picker -->
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Starttid</span>
-          </label>
-          <input v-model="startTime" type="time" class="input input-bordered w-full" required />
-        </div>
+        <!-- Time pickers in a grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Start time picker -->
+          <div class="form-control w-full">
+            <label class="label">
+              <span class="label-text font-medium">Starttid</span>
+            </label>
+            <input v-model="startTime" type="time" class="input input-bordered w-full" required />
+          </div>
 
-        <!-- End time picker -->
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Sluttid</span>
-          </label>
-          <input v-model="endTime" type="time" class="input input-bordered w-full" required />
+          <!-- End time picker -->
+          <div class="form-control w-full">
+            <label class="label">
+              <span class="label-text font-medium">Sluttid</span>
+            </label>
+            <input v-model="endTime" type="time" class="input input-bordered w-full" required />
+          </div>
         </div>
 
         <!-- Error message -->
@@ -53,8 +59,8 @@
         </div>
 
         <!-- Actions -->
-        <div class="modal-action">
-          <button type="button" class="btn" @click="handleClose">Avbryt</button>
+        <div class="modal-action mt-6">
+          <button type="button" class="btn btn-ghost" @click="handleClose">Avbryt</button>
           <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
             <span v-if="isSubmitting" class="loading loading-spinner loading-sm"></span>
             <span v-else>{{ isEditMode ? 'Uppdatera' : 'Boka' }}</span>
@@ -190,6 +196,13 @@ watch(
 
 function handleClose() {
   emit('close')
+}
+
+function handleDateChange(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target && target.value) {
+    selectedDate.value = target.value
+  }
 }
 
 async function handleSubmit() {
