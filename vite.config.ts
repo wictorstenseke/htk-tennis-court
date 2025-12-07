@@ -18,7 +18,14 @@ export default defineConfig({
         })()
       : '/',
   plugins: [
-    vue(),
+    vue({
+      template: {
+        compilerOptions: {
+          // Treat all tags starting with 'calendar-' as custom elements
+          isCustomElement: tag => tag.startsWith('calendar-'),
+        },
+      },
+    }),
     visualizer({
       filename: './dist/stats.html',
       open: false,

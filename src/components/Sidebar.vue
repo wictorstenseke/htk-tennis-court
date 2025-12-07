@@ -343,6 +343,8 @@ function handleMouseLeave() {
 </script>
 
 <style scoped lang="postcss">
+@reference "../styles/main.css";
+
 .menu li > a.active {
   @apply bg-primary text-primary-content;
 }

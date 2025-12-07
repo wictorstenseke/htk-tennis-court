@@ -10,13 +10,15 @@
           <label class="label">
             <span class="label-text font-medium">Datum</span>
           </label>
-          <input
-            v-model="selectedDate"
-            type="date"
-            class="input input-bordered w-full"
+          <calendar-date
+            :value="selectedDate"
+            class="cally w-full"
             :min="minDate"
             required
-          />
+            @change="handleDateChange"
+          >
+            <calendar-month></calendar-month>
+          </calendar-date>
         </div>
 
         <!-- Time pickers in a grid -->
@@ -194,6 +196,13 @@ watch(
 
 function handleClose() {
   emit('close')
+}
+
+function handleDateChange(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target && target.value) {
+    selectedDate.value = target.value
+  }
 }
 
 async function handleSubmit() {

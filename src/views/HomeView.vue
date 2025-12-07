@@ -83,20 +83,23 @@
             >
               {{ dateOption.label }}
             </button>
-            <button @click="showDatePicker = true" class="btn btn-sm btn-ghost text-sm">
-              Välj dag
-            </button>
+            <div class="dropdown dropdown-bottom">
+              <div tabindex="0" role="button" class="btn btn-sm btn-ghost text-sm">Välj dag</div>
+              <div
+                tabindex="0"
+                class="dropdown-content menu bg-base-100 rounded-box z-1 p-4 shadow-lg border border-base-300 mt-2"
+              >
+                <calendar-date
+                  :value="selectedDateInput"
+                  class="cally"
+                  :min="todayInput"
+                  @change="handleDatePickerChange"
+                >
+                  <calendar-month></calendar-month>
+                </calendar-date>
+              </div>
+            </div>
           </div>
-          <!-- Date picker input (hidden, shown when button clicked) -->
-          <input
-            v-if="showDatePicker"
-            v-model="selectedDateInput"
-            type="date"
-            class="input input-bordered mt-2"
-            :min="todayInput"
-            @change="handleDatePickerChange"
-            @blur="showDatePicker = false"
-          />
         </div>
 
         <!-- Start Time Input -->
@@ -277,7 +280,7 @@
                       </div>
                       <ul
                         tabindex="0"
-                        class="dropdown-content menu bg-base-100 rounded-box z-[1] w-32 p-2 shadow-lg border border-base-300"
+                        class="dropdown-content menu bg-base-100 rounded-box z-1 w-32 p-2 shadow-lg border border-base-300"
                       >
                         <li>
                           <a @click.prevent="handleEditBooking(booking)" class="text-sm">
@@ -299,7 +302,10 @@
                           </a>
                         </li>
                         <li>
-                          <a @click.prevent="handleDeleteBooking(booking)" class="text-sm text-error">
+                          <a
+                            @click.prevent="handleDeleteBooking(booking)"
+                            class="text-sm text-error"
+                          >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               class="h-4 w-4"
@@ -430,7 +436,6 @@ const initialBookingEndTime = ref<Date | null>(null)
 
 // Date and time selection for "När vill du spela?"
 const selectedDate = ref<Date | null>(null)
-const showDatePicker = ref(false)
 const startTimeInput = ref('')
 const availableTimeSlots = ref<
   Array<{ startTime: string; displayTime: string; available: boolean }>
@@ -857,7 +862,6 @@ function selectDate(date: Date) {
   const normalizedDate = new Date(date)
   normalizedDate.setHours(0, 0, 0, 0)
   selectedDate.value = normalizedDate
-  showDatePicker.value = false
 
   // Recalculate available times if we have a start time
   if (startTimeInput.value) {
@@ -865,17 +869,19 @@ function selectDate(date: Date) {
   }
 }
 
-function handleDatePickerChange() {
-  if (selectedDateInput.value) {
+function handleDatePickerChange(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target && target.value) {
     // Parse the date string and normalize it
-    const dateString = selectedDateInput.value
+    const dateString = target.value
     const newDate = new Date(dateString + 'T00:00:00') // Add time to avoid timezone issues
     newDate.setHours(0, 0, 0, 0)
 
     // Ensure date is valid
     if (!isNaN(newDate.getTime())) {
       selectedDate.value = newDate
-      showDatePicker.value = false
+      // Update the computed property by setting its value
+      selectedDateInput.value = dateString
 
       // Recalculate available times if we have a start time
       if (startTimeInput.value) {

@@ -16,7 +16,7 @@
     <ul
       v-show="isOpen"
       tabindex="0"
-      class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow-lg mt-2 border border-base-300"
+      class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-lg mt-2 border border-base-300"
     >
       <li>
         <RouterLink to="/profile" class="flex items-center gap-3" @click="closeDropdown">

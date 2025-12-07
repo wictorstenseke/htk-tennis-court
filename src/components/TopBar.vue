@@ -1,5 +1,7 @@
 <template>
-  <header class="navbar fixed top-0 left-0 right-0 h-16 bg-base-100 border-b border-base-300 z-30 px-4">
+  <header
+    class="navbar fixed top-0 left-0 right-0 h-16 bg-base-100 border-b border-base-300 z-30 px-4"
+  >
     <!-- Left: Logo and Title -->
     <div class="navbar-start">
       <div class="flex items-center gap-3">
