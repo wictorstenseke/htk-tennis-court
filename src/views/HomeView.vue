@@ -915,7 +915,6 @@ function handleStartTimeInputChange(newValue: string) {
   calculateAvailableTimes()
 }
 
-
 function calculateAvailableTimes() {
   if (!selectedDate.value || !startTimeInput.value) {
     availableTimeSlots.value = []
