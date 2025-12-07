@@ -28,7 +28,7 @@
     </div>
 
     <!-- Right: User -->
-    <div class="navbar-end">
+    <div class="navbar-end h-full">
       <UserDropdown v-if="isAuthenticated" />
     </div>
   </header>
