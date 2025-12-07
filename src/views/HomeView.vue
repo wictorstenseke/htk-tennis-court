@@ -104,16 +104,11 @@
 
         <!-- Start Time Input -->
         <div class="mb-6">
-          <label class="label">
-            <span class="label-text font-semibold">Starttid</span>
-          </label>
-          <input
+          <TimeAutocomplete
             v-model="startTimeInput"
-            type="time"
-            class="input input-bordered w-full max-w-xs"
-            placeholder="16:00"
-            @input="handleStartTimeInput"
-            @blur="handleStartTimeBlur"
+            label="Starttid"
+            placeholder="Välj starttid"
+            @update:model-value="handleStartTimeInputChange"
           />
         </div>
 
@@ -400,6 +395,7 @@ import { getUserDisplayName as fetchUserDisplayName } from '@/utils/userProfile'
 import { hasBookingOverlap } from '@/utils/bookingValidation'
 import BookingModal from '@/components/BookingModal.vue'
 import AuthModal from '@/components/AuthModal.vue'
+import TimeAutocomplete from '@/components/TimeAutocomplete.vue'
 import type { UserProfileRead } from '@/types/user'
 import type { BookingRead } from '@/types/booking'
 
@@ -857,11 +853,28 @@ function isSameDay(date1: Date | null, date2: Date | null): boolean {
   )
 }
 
+// Get next 15-minute interval from current time
+function getNext15MinInterval(): string {
+  const now = new Date()
+  const currentMinutes = now.getMinutes()
+  const roundedMinutes = Math.ceil(currentMinutes / 15) * 15
+  const hours = now.getHours()
+  const minutes = roundedMinutes >= 60 ? 0 : roundedMinutes
+  const finalHours = roundedMinutes >= 60 ? (hours + 1) % 24 : hours
+
+  return `${finalHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+}
+
 function selectDate(date: Date) {
   // Create a new date object to avoid reference issues
   const normalizedDate = new Date(date)
   normalizedDate.setHours(0, 0, 0, 0)
   selectedDate.value = normalizedDate
+
+  // Auto-fill time input with next 15-minute interval if empty
+  if (!startTimeInput.value) {
+    startTimeInput.value = getNext15MinInterval()
+  }
 
   // Recalculate available times if we have a start time
   if (startTimeInput.value) {
@@ -891,63 +904,14 @@ function handleDatePickerChange(event: Event) {
   }
 }
 
-function handleStartTimeInput(event: Event) {
-  const target = event.target as HTMLInputElement
-  let value = target.value.trim()
-
-  // If using type="time", the value is already in HH:mm format
-  // But we also support manual input with dots or other formats
-  if (!value) {
+function handleStartTimeInputChange(newValue: string) {
+  // Handle time input change from TimeAutocomplete component
+  if (!newValue) {
     availableTimeSlots.value = []
     return
   }
 
-  // Replace dots with colons for time format
-  value = value.replace(/\./g, ':')
-
-  // Validate and format time input (HH:mm or HH.mm or just HH)
-  const timeMatch = value.match(/^(\d{1,2})[:.]?(\d{0,2})?$/)
-  if (timeMatch) {
-    let hours = parseInt(timeMatch[1]) || 0
-    let minutes = parseInt(timeMatch[2] || '0') || 0
-
-    // Validate hours and minutes
-    if (hours > 23) hours = 23
-    if (hours < 0) hours = 0
-    if (minutes > 59) minutes = 59
-    if (minutes < 0) minutes = 0
-
-    // Format as HH:mm
-    const formatted = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
-
-    // Only update if different to avoid infinite loops
-    if (startTimeInput.value !== formatted) {
-      startTimeInput.value = formatted
-      // Update the input element value if it's a time input
-      if (target.type === 'time') {
-        target.value = formatted
-      }
-    }
-  } else {
-    // Invalid format, try to extract valid parts
-    const numbers = value.match(/\d+/g)
-    if (numbers && numbers.length > 0) {
-      let hours = parseInt(numbers[0]) || 0
-      if (hours > 23) hours = 23
-      if (hours < 0) hours = 0
-
-      let minutes = numbers.length > 1 ? parseInt(numbers[1]) || 0 : 0
-      if (minutes > 59) minutes = 59
-      if (minutes < 0) minutes = 0
-
-      const formatted = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
-      startTimeInput.value = formatted
-      if (target.type === 'time') {
-        target.value = formatted
-      }
-    }
-  }
-
+  // TimeAutocomplete already provides HH:mm format, so just recalculate
   calculateAvailableTimes()
 }
 
