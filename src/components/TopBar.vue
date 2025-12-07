@@ -7,20 +7,7 @@
       <div class="flex items-center gap-3">
         <!-- Logo -->
         <div class="flex items-center justify-center w-10 h-10">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-8 w-8 text-primary"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13 10V3L4 14h7v7l9-11h-7z"
-            />
-          </svg>
+          <img src="/htk-logo.svg" alt="HTK Logo" class="h-8 w-8" />
         </div>
         <!-- Title -->
         <h1 class="text-xl font-bold text-base-content">HTK Tennis</h1>
