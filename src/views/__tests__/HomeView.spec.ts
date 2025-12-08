@@ -3,6 +3,8 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'
 import { ref } from 'vue'
+import type { ComponentPublicInstance } from 'vue'
+import { Timestamp } from 'firebase/firestore'
 import HomeView from '../HomeView.vue'
 import * as mockData from '@/utils/mockData'
 import { createMockUserProfile, createMockBooking } from '@/test-utils/firebase-mocks'
@@ -23,22 +25,32 @@ vi.mock('@/composables/useFirebaseAuth', () => ({
   })),
 }))
 
+interface BookingsStoreMock {
+  bookings: unknown[]
+  isLoading: boolean
+  error: string | null
+  loadAllBookings: ReturnType<typeof vi.fn>
+  addBooking: ReturnType<typeof vi.fn>
+  editBooking: ReturnType<typeof vi.fn>
+  removeBooking: ReturnType<typeof vi.fn>
+}
+
+let bookingsStoreMock: BookingsStoreMock
+
 vi.mock('@/composables/useBookings', () => ({
   useBookings: vi.fn(() => ({
-    bookingsStore: {
-      bookings: [],
-      isLoading: false,
-      error: null,
-      loadAllBookings: vi.fn(),
-      addBooking: vi.fn(),
-      removeBooking: vi.fn(),
-    },
+    bookingsStore: bookingsStoreMock,
     currentUserId: 'test-user-id',
+    canEditBooking: vi.fn().mockReturnValue(true),
   })),
 }))
 
 vi.mock('@/utils/dateUtils', () => ({
   formatBookingDateTime: vi.fn((_start, _end) => '2024-01-01 10:00 - 12:00'),
+  formatBookingDate: vi.fn(() => '2024-01-01'),
+  formatBookingTime: vi.fn(() => '10:00'),
+  formatTimeRange: vi.fn(() => '10.00-12.00'),
+  getDateKey: vi.fn(() => '2024-01-01'),
   getDayBounds: vi.fn(),
 }))
 
@@ -68,6 +80,15 @@ describe('HomeView', () => {
   let router: ReturnType<typeof createRouter>
 
   beforeEach(() => {
+    bookingsStoreMock = {
+      bookings: [],
+      isLoading: false,
+      error: null,
+      loadAllBookings: vi.fn(),
+      addBooking: vi.fn(),
+      editBooking: vi.fn(),
+      removeBooking: vi.fn(),
+    }
     const pinia = createPinia()
     setActivePinia(pinia)
     vi.clearAllMocks()
@@ -218,5 +239,45 @@ describe('HomeView', () => {
     // Note: These tests may need to be updated based on actual booking display logic
     // The bookings section only shows future bookings, so past bookings won't appear
     expect(wrapper.text()).toContain('Bokningar')
+  })
+
+  it('computes disabled start times for unavailable intervals', async () => {
+    // Use local dates to avoid timezone issues
+    const futureDate = new Date(2030, 0, 1, 10, 0, 0) // Jan 1, 2030 10:00 local
+    const endDate = new Date(2030, 0, 1, 12, 0, 0) // Jan 1, 2030 12:00 local
+    bookingsStoreMock.bookings = [
+      {
+        id: 'b1',
+        userId: 'u1',
+        startTime: Timestamp.fromDate(futureDate),
+        endTime: Timestamp.fromDate(endDate),
+        status: 'booked',
+      },
+    ]
+
+    const wrapper = mount(HomeView, {
+      global: {
+        plugins: [router],
+        stubs: {
+          'calendar-date': { template: '<div><slot /></div>' },
+          'calendar-month': { template: '<div></div>' },
+          AuthModal: { template: '<div></div>' },
+        },
+      },
+    })
+
+    const vm = wrapper.vm as ComponentPublicInstance & {
+      selectedDate: Date | null
+      disabledStartTimes: string[]
+    }
+    vm.selectedDate = new Date(2030, 0, 1, 0, 0, 0) // Jan 1, 2030 00:00 local
+    await flushPromises()
+    await wrapper.vm.$nextTick()
+
+    const disabled = vm.disabledStartTimes
+    expect(disabled).toContain('10:00')
+    expect(disabled).toContain('10:15')
+    expect(disabled).toContain('11:00')
+    expect(disabled).toContain('11:45')
   })
 })

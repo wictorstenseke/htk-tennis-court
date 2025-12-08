@@ -2,14 +2,14 @@
 
 ## Feature Status Overview
 
-### 📋 Planned (18 features)
+### 📋 Planned (17 features)
 
 **Core Booking Features**
 - 4. Highlight my own bookings
-- 5. Quick suggested booking times + "Choose time" manual option
 - 6. Preferred booking duration in profile
 - 15. Opponent support in bookings
 - 16. View booking history
+- 29. Simplified booking flow (inline form with Cally + time inputs)
 
 **User Features**
 - 17. Profile picture upload (override Gravatar)
@@ -31,6 +31,9 @@
 
 **Public Pages**
 - 13. About the club – Membership via Swish
+
+### 💡 Ideas / Paused (1 feature)
+- 5. Quick suggested booking times + "Choose time" manual option
 
 ### ✅ Implemented (11 features)
 
@@ -119,7 +122,7 @@ As a logged-in player, I want my own bookings to be clearly highlighted.
 ---
 
 ## 5. Quick suggested booking times + "Choose time" manual option  
-**Status:** [Started - Manual Entry Improved]
+**Status:** [Idea/Paused]
 
 **Description**  
 As a player, I want fast one-click booking suggestions, with the option to manually choose time.
@@ -147,6 +150,28 @@ As a player, I want to set my preferred booking duration (e.g. 60/90/120 minutes
 3. Used when generating suggested time slots.  
 4. Pre-fills end time in manual booking form.  
 5. Fallback default if not set.
+
+---
+
+## 29. Simplified Booking Flow (Move Modal Controls Inline)  
+**Status:** [Planned]
+
+**Description**  
+Move the existing booking modal controls into an inline form on `HomeView`, keeping today’s time-input behaviors (desktop autocomplete, native mobile time inputs) and using Cally for date selection. No references to the modal should be needed once the controls are inline.
+
+**Acceptance Criteria**
+1. Inline form (no modal): date + time inputs and submit live directly on the booking page (same view as today), replacing the modal.  
+2. Date input: Cally date picker opens when the field/icon is clicked; closes on selection/click-away; highlights chosen date; loads bookings for that date.  
+3. Time inputs: reuse current behavior—desktop gets autocomplete suggestions; mobile uses native `type="time"`; validate start < end and valid times for the selected date.  
+4. Unavailable times: after a date is selected, show booked intervals for that day beneath the time inputs; refresh when date or bookings change.  
+5. Submit button: always enabled; on press validate date selected, start < end, and no overlap with booked intervals; show inline errors on failure; on success create booking (`userId`, `startTime`, `endTime`, `status="booked"`, `createdAt`) and refresh bookings/unavailable times.  
+6. Form UX: layout order is date (Cally), start time, end time, unavailable times, submit; after success the date stays selected and time inputs can reset; bookings and unavailable times refresh.  
+7. Home view parity: replace the current date/time booking UI in `HomeView.vue` with the inline form and remove modal-based booking references.
+
+**Notes / Future Enhancements**
+- Preferred booking duration could auto-fill end time after selecting start time.  
+- Quick suggested slots could appear above the form, reusing date and duration logic.  
+- Opponent selection can be added as an optional field once core flow is stable.
 
 ---
 

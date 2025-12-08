@@ -1,65 +1,74 @@
 <template>
   <div class="form-control relative">
     <label v-if="label" class="label py-1">
-      <span class="label-text font-medium">{{ label }}</span>
+      <span class="label-text text-sm font-medium">{{ label }}</span>
     </label>
     <div class="relative">
-      <!-- Native time input for mobile devices -->
       <input
-        v-if="isMobile"
         :id="inputId"
         ref="inputRef"
         v-model="inputValue"
-        type="time"
-        class="input input-bordered w-full"
-        :required="required"
-        step="900"
-        @change="handleNativeTimeChange"
-      />
-      <!-- Autocomplete input for desktop -->
-      <input
-        v-else
-        :id="inputId"
-        ref="inputRef"
-        v-model="inputValue"
-        type="text"
-        class="input input-bordered max-w-xs"
+        :type="inputType"
+        :class="['input input-bordered w-full', isMobile ? '' : 'pr-10']"
         :placeholder="placeholder"
         :required="required"
         autocomplete="off"
+        :step="isMobile ? 900 : undefined"
         @input="handleInput"
         @focus="handleFocus"
         @click="handleClick"
         @blur="handleBlur"
         @keydown="handleKeydown"
+        @change="handleChange"
       />
       <!-- Dropdown with suggestions (desktop only) -->
-      <Teleport to="body">
-        <div
-          v-if="!isMobile && showDropdown && filteredOptions.length > 0"
-          ref="dropdownRef"
-          class="time-dropdown fixed bg-base-100 border border-base-300 rounded-box shadow-lg max-h-60 overflow-y-auto"
-          :style="dropdownStyle"
+      <div
+        v-if="!isMobile && showDropdown && filteredOptions.length > 0"
+        ref="dropdownRef"
+        class="time-dropdown absolute left-0 right-0 mt-1 bg-base-100 border border-base-300 rounded-box shadow-lg max-h-60 overflow-y-auto"
+      >
+        <button
+          v-for="(option, index) in filteredOptions"
+          :key="option"
+          type="button"
+          class="w-full text-left px-4 py-2 hover:bg-base-200 focus:bg-base-200 focus:outline-none"
+          :class="{
+            'bg-base-200': index === selectedIndex,
+            'text-base-content/50 cursor-not-allowed': props.disabledOptions.includes(option),
+          }"
+          :aria-disabled="props.disabledOptions.includes(option)"
+          @mousedown="handleMouseDown(option, $event)"
+          @click="selectOption(option)"
+          @mouseenter="selectedIndex = index"
         >
-          <button
-            v-for="(option, index) in filteredOptions"
-            :key="option"
-            type="button"
-            class="w-full text-left px-4 py-2 hover:bg-base-200 focus:bg-base-200 focus:outline-none"
-            :class="{ 'bg-base-200': index === selectedIndex }"
-            @click="selectOption(option)"
-            @mouseenter="selectedIndex = index"
-          >
-            {{ option }}
-          </button>
-        </div>
-      </Teleport>
+          {{ option }}
+        </button>
+      </div>
+      <div
+        v-if="!isMobile"
+        class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-base-content/60"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4 stroke-current"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useMediaQuery } from '@vueuse/core'
 
 interface Props {
@@ -68,6 +77,7 @@ interface Props {
   placeholder?: string
   required?: boolean
   inputId?: string
+  disabledOptions?: string[]
 }
 
 interface Emits {
@@ -78,23 +88,20 @@ const props = withDefaults(defineProps<Props>(), {
   placeholder: 'HH:mm',
   required: false,
   inputId: undefined,
+  disabledOptions: () => [],
 })
 
 const emit = defineEmits<Emits>()
 
 // Detect mobile devices (screens smaller than 768px or touch devices)
 const isMobile = useMediaQuery('(max-width: 767px), (pointer: coarse)')
+const inputType = computed(() => (isMobile.value ? 'time' : 'text'))
 
 const inputRef = ref<HTMLInputElement | null>(null)
 const dropdownRef = ref<HTMLDivElement | null>(null)
 const inputValue = ref('')
 const showDropdown = ref(false)
 const selectedIndex = ref(0)
-const dropdownStyle = ref<{ top: string; left: string; width: string }>({
-  top: '0px',
-  left: '0px',
-  width: '0px',
-})
 
 // Generate all time slots in 15-minute increments (00:00 to 23:45)
 const allTimeSlots = computed(() => {
@@ -251,21 +258,11 @@ watch(inputValue, newValue => {
   emit('update:modelValue', newValue)
 })
 
-// Handle native time input change (mobile)
-function handleNativeTimeChange(event: Event) {
-  const target = event.target as HTMLInputElement
-  if (target && target.value) {
-    // Native time input returns HH:mm format, which matches our format
-    inputValue.value = target.value
-    emit('update:modelValue', target.value)
-  }
-}
-
 function handleInput() {
+  if (isMobile.value) return
   // Show dropdown and reset selection when user types
   showDropdown.value = true
   selectedIndex.value = 0
-  updateDropdownPosition()
   // The filteredOptions computed will automatically update based on inputValue
 }
 
@@ -281,34 +278,22 @@ function getNext15MinInterval(): string {
   return `${finalHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
 }
 
-function updateDropdownPosition() {
-  if (!inputRef.value || !dropdownRef.value) return
-
-  nextTick(() => {
-    const rect = inputRef.value!.getBoundingClientRect()
-    dropdownStyle.value = {
-      top: `${rect.bottom + window.scrollY + 4}px`,
-      left: `${rect.left + window.scrollX}px`,
-      width: `${rect.width}px`,
-    }
-  })
-}
-
 function handleFocus() {
+  if (isMobile.value) return
   // Show dropdown on focus, but don't auto-fill
   showDropdown.value = true
   selectedIndex.value = 0
-  updateDropdownPosition()
 }
 
 function handleClick() {
+  if (isMobile.value) return
   // Show dropdown on click, but don't auto-fill
   showDropdown.value = true
   selectedIndex.value = 0
-  updateDropdownPosition()
 }
 
 function handleBlur() {
+  if (isMobile.value) return
   // Delay to allow click events on dropdown to fire
   setTimeout(() => {
     showDropdown.value = false
@@ -316,6 +301,7 @@ function handleBlur() {
 }
 
 function handleKeydown(event: KeyboardEvent) {
+  if (isMobile.value) return
   if (!showDropdown.value || filteredOptions.value.length === 0) {
     return
   }
@@ -338,9 +324,29 @@ function handleKeydown(event: KeyboardEvent) {
 }
 
 function selectOption(option: string) {
+  if (props.disabledOptions.includes(option)) {
+    showDropdown.value = true
+    return
+  }
   inputValue.value = option
   showDropdown.value = false
   inputRef.value?.blur()
+}
+
+function handleMouseDown(option: string, event: MouseEvent) {
+  if (props.disabledOptions.includes(option)) {
+    event.preventDefault()
+    event.stopPropagation()
+    showDropdown.value = true
+  }
+}
+
+function handleChange(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (!target) return
+  // Native time input returns HH:mm
+  inputValue.value = target.value
+  emit('update:modelValue', target.value)
 }
 
 onMounted(() => {
@@ -348,16 +354,9 @@ onMounted(() => {
   if (!props.inputId && inputRef.value) {
     inputRef.value.id = `time-input-${Math.random().toString(36).substring(2, 9)}`
   }
-
-  // Update dropdown position on scroll and resize
-  window.addEventListener('scroll', updateDropdownPosition, true)
-  window.addEventListener('resize', updateDropdownPosition)
 })
 
-onUnmounted(() => {
-  window.removeEventListener('scroll', updateDropdownPosition, true)
-  window.removeEventListener('resize', updateDropdownPosition)
-})
+onUnmounted(() => {})
 </script>
 
 <style scoped>
