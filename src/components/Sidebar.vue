@@ -160,12 +160,23 @@
       <!-- Sidebar Control Menu -->
       <div v-if="isAuthenticated" class="border-t border-base-300 py-2 px-2">
         <ul class="menu menu-vertical w-full p-0">
-          <li class="dropdown dropdown-top">
+          <li
+            ref="controlMenuRef"
+            class="dropdown dropdown-top"
+            :class="{ 'dropdown-open': isControlMenuOpen }"
+            @keydown.esc.stop.prevent="closeControlMenu"
+          >
             <div
               tabindex="0"
               role="button"
               class="flex items-center gap-3 w-full"
               title="Sidebar control"
+              :aria-expanded="isControlMenuOpen"
+              @pointerdown.capture.stop="onControlTriggerPointer"
+              @click.stop.capture="onControlTriggerClick"
+              @mousedown.stop
+              @keydown.enter.prevent="onControlTriggerClick"
+              @keydown.space.prevent="onControlTriggerClick"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -183,7 +194,7 @@
               </svg>
             </div>
             <ul
-              tabindex="0"
+              v-show="isControlMenuOpen"
               class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-lg mb-2 border border-base-300 menu-vertical"
             >
               <li>
@@ -231,7 +242,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import type { SidebarState } from '@/types/user'
@@ -243,6 +254,8 @@ const isAuthenticated = computed(() => userStore.isAuthenticated)
 const sidebarState = ref<SidebarState>('expanded')
 const isCollapsed = ref(false)
 const isHovering = ref(false)
+const isControlMenuOpen = ref(false)
+const controlMenuRef = ref<HTMLElement | null>(null)
 
 const emit = defineEmits<{
   widthChange: [width: number]
@@ -286,11 +299,7 @@ function applySidebarState() {
 async function handleStateChange(newState: SidebarState) {
   sidebarState.value = newState
   applySidebarState()
-
-  // Close dropdown by removing focus from active element
-  if (document.activeElement instanceof HTMLElement) {
-    document.activeElement.blur()
-  }
+  closeControlMenu()
 
   // Save to user profile if authenticated
   if (isAuthenticated.value && userStore.currentUser) {
@@ -340,6 +349,40 @@ function handleMouseEnter() {
 function handleMouseLeave() {
   isHovering.value = false
 }
+
+function toggleControlMenu() {
+  isControlMenuOpen.value = !isControlMenuOpen.value
+}
+
+function onControlTriggerClick() {
+  toggleControlMenu()
+}
+
+function onControlTriggerPointer() {
+  // Toggle immediately on pointerdown in case click is being swallowed higher up
+  toggleControlMenu()
+}
+
+function closeControlMenu() {
+  if (!isControlMenuOpen.value) return
+  isControlMenuOpen.value = false
+}
+
+function handleOutsideClick(event: MouseEvent) {
+  if (!isControlMenuOpen.value) return
+  const target = event.target as HTMLElement | null
+  if (target && controlMenuRef.value && !controlMenuRef.value.contains(target)) {
+    closeControlMenu()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleOutsideClick)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleOutsideClick)
+})
 </script>
 
 <style scoped lang="postcss">
