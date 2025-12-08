@@ -33,6 +33,10 @@ export default defineConfig({
       brotliSize: true,
     }),
   ],
+  server: {
+    host: true, // Listen on all network interfaces
+    port: 5173, // Default Vite port
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

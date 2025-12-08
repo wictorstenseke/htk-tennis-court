@@ -4,7 +4,21 @@
       <span class="label-text font-medium">{{ label }}</span>
     </label>
     <div class="relative">
+      <!-- Native time input for mobile devices -->
       <input
+        v-if="isMobile"
+        :id="inputId"
+        ref="inputRef"
+        v-model="inputValue"
+        type="time"
+        class="input input-bordered w-full"
+        :required="required"
+        step="900"
+        @change="handleNativeTimeChange"
+      />
+      <!-- Autocomplete input for desktop -->
+      <input
+        v-else
         :id="inputId"
         ref="inputRef"
         v-model="inputValue"
@@ -19,10 +33,10 @@
         @blur="handleBlur"
         @keydown="handleKeydown"
       />
-      <!-- Dropdown with suggestions -->
+      <!-- Dropdown with suggestions (desktop only) -->
       <Teleport to="body">
         <div
-          v-if="showDropdown && filteredOptions.length > 0"
+          v-if="!isMobile && showDropdown && filteredOptions.length > 0"
           ref="dropdownRef"
           class="time-dropdown fixed bg-base-100 border border-base-300 rounded-box shadow-lg max-h-60 overflow-y-auto"
           :style="dropdownStyle"
@@ -46,6 +60,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { useMediaQuery } from '@vueuse/core'
 
 interface Props {
   modelValue: string
@@ -66,6 +81,9 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<Emits>()
+
+// Detect mobile devices (screens smaller than 768px or touch devices)
+const isMobile = useMediaQuery('(max-width: 767px), (pointer: coarse)')
 
 const inputRef = ref<HTMLInputElement | null>(null)
 const dropdownRef = ref<HTMLDivElement | null>(null)
@@ -232,6 +250,16 @@ watch(
 watch(inputValue, newValue => {
   emit('update:modelValue', newValue)
 })
+
+// Handle native time input change (mobile)
+function handleNativeTimeChange(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target && target.value) {
+    // Native time input returns HH:mm format, which matches our format
+    inputValue.value = target.value
+    emit('update:modelValue', target.value)
+  }
+}
 
 function handleInput() {
   // Show dropdown and reset selection when user types

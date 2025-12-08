@@ -119,7 +119,7 @@ As a logged-in player, I want my own bookings to be clearly highlighted.
 ---
 
 ## 5. Quick suggested booking times + "Choose time" manual option  
-**Status:** [Started]
+**Status:** [Started - Manual Entry Improved]
 
 **Description**  
 As a player, I want fast one-click booking suggestions, with the option to manually choose time.
@@ -127,9 +127,11 @@ As a player, I want fast one-click booking suggestions, with the option to manua
 **Acceptance Criteria**
 1. System shows a list of free suggested time slots.  
 2. Clicking a suggestion books immediately (after validation).  
-3. “Choose time” button reveals manual time entry fields.  
-4. Manual entry uses the same overlap validation.  
-5. Suggestions respect player’s preferred booking duration (if set).
+3. ✅ “Choose time” button reveals manual time entry fields.  
+4. ✅ Manual entry uses the same overlap validation.  
+5. ✅ Manual time entry now uses autocomplete component with 15-minute increments and smart suggestions.  
+6. ✅ Time input auto-fills with next 15-minute interval when date is selected.  
+7. Suggestions respect player’s preferred booking duration (if set).
 
 ---
 
@@ -521,11 +523,12 @@ As a visitor, I want to easily pay the membership fee by scanning a Swish QR cod
 These are potential features that have been discussed but need more definition before becoming full feature stories:
 
 ## UI/UX Improvements
-- Editable time slots / selectable time UI component (predefined available slots shown, custom UI for picking times)
+- ✅ Editable time slots / selectable time UI component (predefined available slots shown, custom UI for picking times) - **Implemented: TimeAutocomplete component with autocomplete and 15-minute increments**
 - Alternative list view / calendar view for bookings
-- Making booking flow smoother with pre-filled times
+- ✅ Making booking flow smoother with pre-filled times - **Implemented: Auto-fills time when date badge is selected, dropdown shows next 3 hours of available slots**
 - Better display of time slots
 - Highlighting rules (e.g., if off-season)
+- ✅ Improved booking modal UI - **Implemented: Smaller, tighter modal with better time input UX**
 
 ## Ladder Features
 - Custom ladders (player-created ladders with invitations)
