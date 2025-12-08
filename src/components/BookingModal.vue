@@ -7,6 +7,9 @@
       <form @submit.prevent="handleSubmit" class="space-y-4">
         <!-- Date picker -->
         <div class="form-control w-full">
+          <label class="label py-1">
+            <span class="label-text font-medium">Datum</span>
+          </label>
           <calendar-date
             :value="selectedDate"
             class="cally w-full booking-calendar no-today-highlight"

@@ -1,14 +1,26 @@
+/* stylelint-disable unknownAtRules -- Tailwind v4 plugin directive */
 @import "tailwindcss";
 @plugin "daisyui" {
   themes: light --default, dark --prefersdark;
   root: ":root";
   logs: false;
 }
+/* stylelint-enable unknownAtRules */
 
 /* Remove today's date highlight in cally calendars using CSS custom properties */
 .cally,
 .cally calendar-month {
   --color-accent: transparent;
+}
+
+/* Make Cally calendars slightly larger and tighter */
+.cally,
+.cally calendar-month {
+  font-size: 0.8rem;
+}
+
+.cally calendar-month button {
+  padding: 0.45rem 0.35rem;
 }
 
 /* Remove today's date highlight using part selectors */

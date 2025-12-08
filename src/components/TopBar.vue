@@ -7,10 +7,10 @@
       <div class="flex items-center gap-3">
         <!-- Logo -->
         <div class="flex items-center justify-center w-10 h-10">
-          <img src="/htk-logo.svg" alt="HTK Logo" class="h-8 w-8" />
+          <img src="/htk-logo.svg" alt="HTK Logo" class="h-10 w-10" />
         </div>
         <!-- Title -->
-        <h1 class="text-xl font-bold text-base-content">HTK Tennis</h1>
+        <h1 class="text-xl font-bold text-base-content">Högelids Tennisklubb</h1>
       </div>
     </div>
 

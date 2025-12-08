@@ -61,78 +61,161 @@
       </section>
 
       <!-- När vill du spela? Section -->
-      <section class="mb-12">
+      <section class="mb-12" ref="bookingFormRef">
         <h2 class="text-3xl font-bold mb-6">När vill du spela?</h2>
 
-        <!-- Date Selection -->
-        <div class="mb-6">
-          <label class="label">
-            <span class="label-text font-semibold">Datum</span>
-          </label>
-          <div class="flex flex-wrap items-center gap-2">
-            <button
-              v-for="dateOption in dateOptions"
-              :key="dateOption.key"
-              @click="selectDate(dateOption.date)"
-              class="badge badge-lg"
-              :class="
-                selectedDate && isSameDay(selectedDate, dateOption.date)
-                  ? 'badge-primary'
-                  : 'badge-outline'
-              "
-            >
-              {{ dateOption.label }}
-            </button>
-            <div class="dropdown dropdown-bottom">
-              <div tabindex="0" role="button" class="btn btn-sm btn-ghost text-sm">Välj dag</div>
-              <div
-                tabindex="0"
-                class="dropdown-content menu bg-base-100 rounded-box z-1 p-4 shadow-lg border border-base-300 mt-2"
-              >
-                <calendar-date
+        <div class="max-w-lg w-full mx-auto px-2 sm:px-0">
+          <fieldset
+            class="space-y-6 bg-base-200/70 border border-base-300 rounded-box p-6"
+            ref="calendarWrapperRef"
+          >
+            <legend class="sr-only">Bokningsformulär</legend>
+
+            <div class="form-control w-full">
+              <label class="label pb-1">
+                <span class="label-text text-sm font-medium">Datum</span>
+              </label>
+              <div class="relative w-full">
+                <input
+                  type="text"
+                  class="input input-bordered w-full pr-10"
+                  placeholder="Välj datum"
                   :value="selectedDateInput"
-                  class="cally"
-                  :min="todayInput"
-                  @change="handleDatePickerChange"
+                  readonly
+                  @click="showCalendar = true"
+                />
+                <div
+                  class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-base-content/60"
                 >
-                  <calendar-month></calendar-month>
-                </calendar-date>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 stroke-current"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                      d="M6.75 3v2.25M17.25 3v2.25M3.75 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h12a2.25 2.25 0 0 1 2.25 2.25v11.25m-16.5 0A2.25 2.25 0 0 0 6 21h12a2.25 2.25 0 0 0 2.25-2.25m-16.5 0v-7.5A2.25 2.25 0 0 1 6 9h12a2.25 2.25 0 0 1 2.25 2.25v7.5"
+                    />
+                  </svg>
+                </div>
+                <div
+                  v-if="showCalendar"
+                  class="absolute z-10 mt-2 bg-base-100 rounded-box shadow-lg border border-base-300 p-3"
+                >
+                  <calendar-date
+                    :value="selectedDateInput"
+                    class="cally"
+                    :min="todayInput"
+                    @change="handleDatePickerChange"
+                  >
+                    <calendar-month></calendar-month>
+                  </calendar-date>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        <!-- Start Time Input -->
-        <div class="mb-6">
-          <TimeAutocomplete
-            v-model="startTimeInput"
-            label="Starttid"
-            placeholder="Välj starttid"
-            @update:model-value="handleStartTimeInputChange"
-          />
-        </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <TimeAutocomplete
+                v-model="startTimeInput"
+                label="Starttid"
+                placeholder="Välj starttid"
+                :disabled="isSubmittingBooking"
+                :disabled-options="disabledStartTimes"
+                @update:model-value="handleStartTimeInputChange"
+              />
+              <TimeAutocomplete
+                v-model="endTimeInput"
+                label="Slut"
+                placeholder="Välj sluttid"
+                :disabled="isSubmittingBooking"
+                @update:model-value="handleEndTimeInputChange"
+              />
+            </div>
 
-        <!-- Available Time Slots -->
-        <div v-if="availableTimeSlots.length > 0" class="mb-6">
-          <label class="label">
-            <span class="label-text font-semibold">Tillgängliga tider</span>
-          </label>
-          <div class="flex flex-wrap gap-2">
-            <button
-              v-for="slot in availableTimeSlots"
-              :key="slot.startTime"
-              @click="selectTimeSlot(slot)"
-              class="badge badge-lg transition-all"
-              :class="
-                slot.available
-                  ? 'badge-primary cursor-pointer hover:badge-primary-focus'
-                  : 'badge-ghost opacity-50 cursor-not-allowed'
-              "
-              :disabled="!slot.available"
-            >
-              {{ slot.displayTime }}
-            </button>
-          </div>
+            <div v-if="selectedDate && unavailableIntervals.length > 0" class="space-y-2">
+              <div class="flex flex-wrap gap-2">
+                <div
+                  v-for="booking in unavailableIntervals"
+                  :key="booking.id"
+                  class="badge badge-ghost bg-base-300 text-base-content/70 gap-1 pr-3"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4 text-base-content/60"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M18.364 5.636a9 9 0 10-12.728 12.728A9 9 0 0018.364 5.636zM15 9l-6 6"
+                    />
+                  </svg>
+                  <span>{{ booking.timeRange }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="formError" class="alert alert-error">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="stroke-current shrink-0 h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span>{{ formError }}</span>
+            </div>
+
+            <div v-if="formSuccess" class="alert alert-success flex items-center gap-3">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="stroke-current shrink-0 h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span class="flex-1">{{ formSuccess }}</span>
+              <button class="btn btn-sm btn-ghost" type="button" @click="formSuccess = ''">
+                OK
+              </button>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <button
+                class="btn btn-primary"
+                :disabled="isSubmittingBooking || !isAuthenticated"
+                @click="submitInlineBooking"
+              >
+                <span v-if="isSubmittingBooking" class="loading loading-spinner loading-sm"></span>
+                <span v-else>{{ editingBooking ? 'Uppdatera bokning' : 'Boka' }}</span>
+              </button>
+              <span v-if="!isAuthenticated" class="text-sm text-base-content/70">
+                Logga in för att boka.
+              </span>
+              <span v-else-if="editingBooking" class="badge badge-outline">
+                Redigerar bokning
+              </span>
+            </div>
+          </fieldset>
         </div>
       </section>
 
@@ -358,19 +441,6 @@
         </div>
       </section>
 
-      <!-- Booking Modal -->
-      <BookingModal
-        v-if="isAuthenticated"
-        :is-open="isModalOpen"
-        :existing-bookings="bookedBookings"
-        :editing-booking="editingBooking"
-        :initial-date="initialBookingDate"
-        :initial-start-time="initialBookingStartTime"
-        :initial-end-time="initialBookingEndTime"
-        @close="closeModal"
-        @submit="handleBookingSubmit"
-      />
-
       <!-- Auth Modal -->
       <AuthModal :is-open="isAuthModalOpen" @close="closeAuthModal" @success="handleAuthSuccess" />
     </div>
@@ -390,10 +460,14 @@ import {
   getUserDisplayName as getMockUserDisplayName,
   mockUserIds,
 } from '@/utils/mockData'
-import { formatTimeRange, formatBookingDate, getDateKey } from '@/utils/dateUtils'
+import {
+  formatTimeRange,
+  formatBookingDate,
+  formatBookingTime,
+  getDateKey,
+} from '@/utils/dateUtils'
 import { getUserDisplayName as fetchUserDisplayName } from '@/utils/userProfile'
-import { hasBookingOverlap } from '@/utils/bookingValidation'
-import BookingModal from '@/components/BookingModal.vue'
+import { hasBookingOverlap, validateBookingTimeRange } from '@/utils/bookingValidation'
 import AuthModal from '@/components/AuthModal.vue'
 import TimeAutocomplete from '@/components/TimeAutocomplete.vue'
 import type { UserProfileRead } from '@/types/user'
@@ -422,70 +496,25 @@ const disabledMessage = computed(() => {
 
 const mockUsers = ref<UserProfileRead[]>([])
 const mockBookings = ref<BookingRead[]>([])
-const isModalOpen = ref(false)
 const isAuthModalOpen = ref(false)
 const editingBooking = ref<BookingRead | null>(null)
 const userDisplayNames = ref<Map<string, string>>(new Map())
-const initialBookingDate = ref<Date | null>(null)
-const initialBookingStartTime = ref<Date | null>(null)
-const initialBookingEndTime = ref<Date | null>(null)
+const bookingFormRef = ref<HTMLElement | null>(null)
+const calendarWrapperRef = ref<HTMLElement | null>(null)
+const clickAwayHandler = ref<((event: MouseEvent) => void) | null>(null)
 
 // Date and time selection for "När vill du spela?"
 const selectedDate = ref<Date | null>(null)
+const showCalendar = ref(false)
 const startTimeInput = ref('')
-const availableTimeSlots = ref<
-  Array<{ startTime: string; displayTime: string; available: boolean }>
->([])
+const endTimeInput = ref('')
+const formError = ref('')
+const formSuccess = ref('')
+const isSubmittingBooking = ref(false)
 
 // Get preferred booking duration (reactive)
 const preferredDuration = computed(() => {
   return userStore.userProfile?.preferredBookingLengthMinutes ?? 120
-})
-
-// Date options for quick selection
-const dateOptions = computed(() => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  const tomorrow = new Date(today)
-  tomorrow.setDate(tomorrow.getDate() + 1)
-
-  const dayAfterTomorrow = new Date(today)
-  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2)
-
-  const dayNames = ['Sön', 'Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör']
-  const monthNames = [
-    'jan',
-    'feb',
-    'mar',
-    'apr',
-    'maj',
-    'jun',
-    'jul',
-    'aug',
-    'sep',
-    'okt',
-    'nov',
-    'dec',
-  ]
-
-  return [
-    {
-      key: 'today',
-      label: `Idag, ${today.getDate()} ${monthNames[today.getMonth()]}`,
-      date: today,
-    },
-    {
-      key: 'tomorrow',
-      label: `Imorgon, ${tomorrow.getDate()} ${monthNames[tomorrow.getMonth()]}`,
-      date: tomorrow,
-    },
-    {
-      key: 'dayAfterTomorrow',
-      label: `${dayNames[dayAfterTomorrow.getDay()]} ${dayAfterTomorrow.getDate()} ${monthNames[dayAfterTomorrow.getMonth()]}`,
-      date: dayAfterTomorrow,
-    },
-  ]
 })
 
 const todayInput = computed(() => {
@@ -511,7 +540,6 @@ const selectedDateInput = computed({
       // Ensure date is valid
       if (!isNaN(newDate.getTime())) {
         selectedDate.value = newDate
-        calculateAvailableTimes()
       }
     }
   },
@@ -555,6 +583,36 @@ const groupedBookings = computed(() => {
     .sort((a, b) => a.dateKey.localeCompare(b.dateKey))
 })
 
+const unavailableIntervals = computed(() => {
+  if (!selectedDate.value) return []
+  const dateKey = getDateKey(Timestamp.fromDate(selectedDate.value))
+
+  return bookedBookings.value
+    .filter(booking => getDateKey(booking.startTime) === dateKey)
+    .map(booking => ({
+      id: booking.id,
+      timeRange: formatTimeRange(booking.startTime, booking.endTime),
+      start: formatBookingTime(booking.startTime),
+      startDate: booking.startTime.toDate(),
+      endDate: booking.endTime.toDate(),
+    }))
+})
+
+const disabledStartTimes = computed(() =>
+  unavailableIntervals.value.flatMap(interval => {
+    const slots: string[] = []
+    const cursor = new Date(interval.startDate)
+    const end = new Date(interval.endDate)
+
+    while (cursor < end) {
+      slots.push(formatTimeForInput(cursor))
+      cursor.setMinutes(cursor.getMinutes() + 15)
+    }
+
+    return slots
+  })
+)
+
 // Watch for authentication changes and reload bookings when user logs in
 watch(isAuthenticated, newValue => {
   if (newValue) {
@@ -567,20 +625,9 @@ watch(isAuthenticated, newValue => {
 watch(
   () => settings.value,
   () => {
-    // Settings updated, ensure modal is closed if bookings are disabled
-    if (settings.value && settings.value.bookingsEnabled === false && isModalOpen.value) {
-      closeModal()
-    }
-  },
-  { deep: true }
-)
-
-// Watch for bookings changes to recalculate available times
-watch(
-  () => bookedBookings.value,
-  () => {
-    if (selectedDate.value && startTimeInput.value) {
-      calculateAvailableTimes()
+    // Settings updated, clear editing state if bookings are disabled
+    if (settings.value && settings.value.bookingsEnabled === false) {
+      editingBooking.value = null
     }
   },
   { deep: true }
@@ -608,11 +655,27 @@ onMounted(async () => {
 
   // Listen for visibility changes to reload settings
   document.addEventListener('visibilitychange', handleVisibilityChange)
+  clickAwayHandler.value = event => {
+    if (!showCalendar.value) return
+    const target = event.target as Node
+    const path = (event.composedPath && event.composedPath()) || []
+    if (
+      calendarWrapperRef.value &&
+      !calendarWrapperRef.value.contains(target) &&
+      !path.includes(calendarWrapperRef.value)
+    ) {
+      showCalendar.value = false
+    }
+  }
+  document.addEventListener('mousedown', clickAwayHandler.value)
 })
 
 // Cleanup listener on unmount
 onUnmounted(() => {
   document.removeEventListener('visibilitychange', handleVisibilityChange)
+  if (clickAwayHandler.value) {
+    document.removeEventListener('mousedown', clickAwayHandler.value)
+  }
 })
 
 async function loadFutureBookings() {
@@ -684,7 +747,17 @@ function getUserDisplayName(userId: string): string {
 
 function handleEditBooking(booking: BookingRead) {
   editingBooking.value = booking
-  openModal()
+  const startDate = booking.startTime.toDate()
+  const endDate = booking.endTime.toDate()
+  startDate.setSeconds(0, 0)
+  endDate.setSeconds(0, 0)
+
+  selectedDate.value = new Date(startDate)
+  startTimeInput.value = formatTimeForInput(startDate)
+  endTimeInput.value = formatTimeForInput(endDate)
+  formError.value = ''
+  formSuccess.value = ''
+  scrollToBookingForm()
 }
 
 async function handleDeleteBooking(booking: BookingRead) {
@@ -759,30 +832,21 @@ function handleBookBananClick() {
     // Show auth modal if not logged in
     openAuthModal()
   } else {
-    // Clear initial values when opening from button (not from time slot)
-    initialBookingDate.value = null
-    initialBookingStartTime.value = null
-    initialBookingEndTime.value = null
-    // Show booking modal if logged in
-    openModal()
-  }
-}
+    formError.value = ''
+    formSuccess.value = ''
+    editingBooking.value = null
 
-function openModal() {
-  // Don't open modal if bookings are disabled
-  if (settings.value && settings.value.bookingsEnabled === false) {
-    return
-  }
-  isModalOpen.value = true
-}
+    if (!selectedDate.value) {
+      selectDate(new Date())
+    }
 
-function closeModal() {
-  isModalOpen.value = false
-  editingBooking.value = null
-  // Clear initial values when modal closes
-  initialBookingDate.value = null
-  initialBookingStartTime.value = null
-  initialBookingEndTime.value = null
+    if (!startTimeInput.value) {
+      startTimeInput.value = getNext15MinInterval()
+      autofillEndTimeFromStart()
+    }
+
+    scrollToBookingForm()
+  }
 }
 
 function openAuthModal() {
@@ -799,60 +863,88 @@ function handleAuthSuccess() {
   loadFutureBookings()
 }
 
-async function handleBookingSubmit(data: {
-  startTime: Timestamp
-  endTime: Timestamp
-  bookingId?: string
-}) {
-  // Double-check bookings are enabled before submitting
+async function submitInlineBooking() {
+  formError.value = ''
+  formSuccess.value = ''
+
   if (settings.value && settings.value.bookingsEnabled === false) {
-    console.error('Bookings are disabled')
-    closeModal()
+    formError.value = disabledMessage.value
     return
   }
 
-  if (!currentUserId.value) {
-    console.error('User not authenticated')
+  if (!isAuthenticated.value || !currentUserId.value) {
+    openAuthModal()
     return
   }
+
+  if (!selectedDate.value || !startTimeInput.value || !endTimeInput.value) {
+    formError.value = 'Välj datum, starttid och sluttid.'
+    return
+  }
+
+  isSubmittingBooking.value = true
 
   try {
-    if (data.bookingId && editingBooking.value) {
-      // Update existing booking
-      await bookingsStore.editBooking(data.bookingId, {
-        startTime: data.startTime,
-        endTime: data.endTime,
-      })
-    } else {
-      // Create new booking
-      await bookingsStore.addBooking({
-        userId: currentUserId.value,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        status: 'booked',
-      })
+    const startDate = parseTimeOnDate(selectedDate.value, startTimeInput.value)
+    const endDate = parseTimeOnDate(selectedDate.value, endTimeInput.value)
+
+    if (!startDate || !endDate) {
+      formError.value = 'Ogiltig tid. Använd format HH:mm.'
+      return
     }
 
-    // Reload bookings to get updated list
+    const validationError = validateBookingTimeRange(startDate, endDate)
+    if (validationError) {
+      formError.value = validationError
+      return
+    }
+
+    const startTimestamp = Timestamp.fromDate(startDate)
+    const endTimestamp = Timestamp.fromDate(endDate)
+
+    const excludeBookingId = editingBooking.value?.id
+    const hasOverlap = hasBookingOverlap(
+      startTimestamp,
+      endTimestamp,
+      [...bookingsStore.bookings, ...mockBookings.value],
+      excludeBookingId
+    )
+
+    if (hasOverlap) {
+      formError.value = 'Vald tid överlappar med en befintlig bokning. Välj en annan tid.'
+      return
+    }
+    if (editingBooking.value && excludeBookingId) {
+      await bookingsStore.editBooking(excludeBookingId, {
+        startTime: startTimestamp,
+        endTime: endTimestamp,
+      })
+      formSuccess.value = 'Bokning uppdaterad.'
+    } else {
+      await bookingsStore.addBooking({
+        userId: currentUserId.value,
+        startTime: startTimestamp,
+        endTime: endTimestamp,
+        status: 'booked',
+      })
+      formSuccess.value = 'Bokning skapad.'
+    }
+
     await loadFutureBookings()
 
-    closeModal()
+    // Keep date selected but reset time inputs
+    startTimeInput.value = ''
+    endTimeInput.value = ''
+    editingBooking.value = null
   } catch (error) {
     console.error('Error saving booking:', error)
-    // Error is handled by the store
+    formError.value = 'Ett fel uppstod vid bokningen.'
+  } finally {
+    isSubmittingBooking.value = false
   }
 }
 
 // Date and time selection functions
-function isSameDay(date1: Date | null, date2: Date | null): boolean {
-  if (!date1 || !date2) return false
-  return (
-    date1.getFullYear() === date2.getFullYear() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getDate() === date2.getDate()
-  )
-}
-
 // Get next 15-minute interval from current time
 function getNext15MinInterval(): string {
   const now = new Date()
@@ -865,20 +957,48 @@ function getNext15MinInterval(): string {
   return `${finalHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
 }
 
+function formatTimeForInput(date: Date): string {
+  const hours = date.getHours().toString().padStart(2, '0')
+  const minutes = date.getMinutes().toString().padStart(2, '0')
+  return `${hours}:${minutes}`
+}
+
+function parseTimeOnDate(date: Date, time: string): Date | null {
+  const normalized = time.replace(/\./g, ':')
+  const [hours, minutes] = normalized.split(':').map(Number)
+  if (isNaN(hours) || isNaN(minutes)) return null
+
+  const result = new Date(date)
+  result.setHours(hours, minutes, 0, 0)
+
+  if (isNaN(result.getTime())) return null
+  return result
+}
+
+function autofillEndTimeFromStart() {
+  if (!selectedDate.value || !startTimeInput.value) return
+  const startDate = parseTimeOnDate(selectedDate.value, startTimeInput.value)
+  if (!startDate) return
+  const endDate = new Date(startDate)
+  endDate.setMinutes(endDate.getMinutes() + preferredDuration.value)
+  endTimeInput.value = formatTimeForInput(endDate)
+}
+
+function scrollToBookingForm() {
+  bookingFormRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
 function selectDate(date: Date) {
   // Create a new date object to avoid reference issues
   const normalizedDate = new Date(date)
   normalizedDate.setHours(0, 0, 0, 0)
   selectedDate.value = normalizedDate
+  showCalendar.value = false
 
   // Auto-fill time input with next 15-minute interval if empty
   if (!startTimeInput.value) {
     startTimeInput.value = getNext15MinInterval()
-  }
-
-  // Recalculate available times if we have a start time
-  if (startTimeInput.value) {
-    calculateAvailableTimes()
+    autofillEndTimeFromStart()
   }
 }
 
@@ -895,161 +1015,26 @@ function handleDatePickerChange(event: Event) {
       selectedDate.value = newDate
       // Update the computed property by setting its value
       selectedDateInput.value = dateString
+      showCalendar.value = false
 
       // Recalculate available times if we have a start time
       if (startTimeInput.value) {
-        calculateAvailableTimes()
+        autofillEndTimeFromStart()
       }
     }
   }
 }
 
-function handleStartTimeInputChange(newValue: string) {
+function handleStartTimeInputChange(_newValue: string) {
   // Handle time input change from TimeAutocomplete component
-  if (!newValue) {
-    availableTimeSlots.value = []
-    return
+  if (!editingBooking.value) {
+    autofillEndTimeFromStart()
   }
-
-  // TimeAutocomplete already provides HH:mm format, so just recalculate
-  calculateAvailableTimes()
 }
 
-function calculateAvailableTimes() {
-  if (!selectedDate.value || !startTimeInput.value) {
-    availableTimeSlots.value = []
-    return
+function handleEndTimeInputChange(_newValue: string) {
+  if (!_newValue) {
+    formError.value = ''
   }
-
-  // Use computed preferred duration (default 120 minutes / 2 hours)
-  const duration = preferredDuration.value
-
-  // Parse start time input (format: HH:mm or HH.mm)
-  const timeStr = startTimeInput.value.replace(/\./g, ':')
-  const [hours, minutes] = timeStr.split(':').map(Number)
-  if (isNaN(hours) || isNaN(minutes)) {
-    availableTimeSlots.value = []
-    return
-  }
-
-  // Create base date/time - ensure we use the selected date properly
-  const baseDate = new Date(selectedDate.value)
-  baseDate.setHours(hours, minutes, 0, 0)
-
-  // Ensure we're working with the correct date (handle timezone issues)
-  if (baseDate.getDate() !== selectedDate.value.getDate()) {
-    // Date shifted due to timezone, reset it
-    baseDate.setFullYear(
-      selectedDate.value.getFullYear(),
-      selectedDate.value.getMonth(),
-      selectedDate.value.getDate()
-    )
-    baseDate.setHours(hours, minutes, 0, 0)
-  }
-
-  // If the selected time is in the past, start from now
-  const now = new Date()
-  if (baseDate < now) {
-    baseDate.setTime(now.getTime())
-    // Round up to next 30-minute interval
-    const currentMinutes = baseDate.getMinutes()
-    const roundedMinutes = currentMinutes <= 30 ? 30 : 60
-    baseDate.setMinutes(roundedMinutes)
-    if (roundedMinutes === 60) {
-      baseDate.setHours(baseDate.getHours() + 1)
-      baseDate.setMinutes(0)
-    }
-  }
-
-  // Get all existing bookings for overlap checking
-  const allBookings = [...bookingsStore.bookings, ...mockBookings.value].filter(
-    b => b.status === 'booked'
-  )
-
-  // Generate 6 time slots starting from the base time
-  const slots: Array<{ startTime: string; displayTime: string; available: boolean }> = []
-  let currentTime = new Date(baseDate)
-  const maxSlots = 6
-  const timeIncrement = 30 // 30 minutes between slots
-
-  for (let i = 0; i < maxSlots * 2; i++) {
-    // Check if we've found enough slots
-    if (slots.length >= maxSlots) break
-
-    // Create start and end timestamps for this slot
-    const slotStart = new Date(currentTime)
-    const slotEnd = new Date(slotStart)
-    slotEnd.setMinutes(slotEnd.getMinutes() + duration)
-
-    // Format display time with full range (e.g., "16.00-18.00")
-    const startHoursStr = slotStart.getHours().toString().padStart(2, '0')
-    const startMinutesStr = slotStart.getMinutes().toString().padStart(2, '0')
-    const endHoursStr = slotEnd.getHours().toString().padStart(2, '0')
-    const endMinutesStr = slotEnd.getMinutes().toString().padStart(2, '0')
-    const displayTime = `${startHoursStr}.${startMinutesStr}-${endHoursStr}.${endMinutesStr}`
-
-    // Check if this slot overlaps with any existing booking
-    const slotStartTimestamp = Timestamp.fromDate(slotStart)
-    const slotEndTimestamp = Timestamp.fromDate(slotEnd)
-    const hasOverlap = hasBookingOverlap(slotStartTimestamp, slotEndTimestamp, allBookings)
-
-    slots.push({
-      startTime: slotStart.toISOString(),
-      displayTime,
-      available: !hasOverlap,
-    })
-
-    // Move to next time slot (30 minutes later)
-    currentTime.setMinutes(currentTime.getMinutes() + timeIncrement)
-  }
-
-  availableTimeSlots.value = slots
-}
-
-function selectTimeSlot(slot: { startTime: string; displayTime: string; available: boolean }) {
-  if (!slot.available || !isAuthenticated.value) return
-
-  // Check if bookings are enabled
-  if (settings.value && settings.value.bookingsEnabled === false) {
-    return
-  }
-
-  // Parse the selected time slot
-  const slotDate = new Date(slot.startTime)
-  const duration = preferredDuration.value
-
-  // Use the already selected date instead of parsing from slot to avoid timezone issues
-  // The selectedDate is already correctly set when the user picks a date
-  const baseDate = selectedDate.value ? new Date(selectedDate.value) : new Date(slotDate)
-  baseDate.setHours(0, 0, 0, 0)
-
-  // Extract time from the slot
-  const slotHours = slotDate.getHours()
-  const slotMinutes = slotDate.getMinutes()
-
-  // Create start time using the selected date with the slot's time
-  const startDateTime = new Date(baseDate)
-  startDateTime.setHours(slotHours, slotMinutes, 0, 0)
-
-  // Create end time
-  const endDateTime = new Date(startDateTime)
-  endDateTime.setMinutes(endDateTime.getMinutes() + duration)
-
-  // Update selected date (should already be set, but ensure it's correct)
-  selectedDate.value = baseDate
-
-  // Format time for input (HH:mm)
-  const hours = slotHours.toString().padStart(2, '0')
-  const minutes = slotMinutes.toString().padStart(2, '0')
-  startTimeInput.value = `${hours}:${minutes}`
-
-  // Set initial values for the booking modal using the correct date
-  initialBookingDate.value = new Date(baseDate)
-  initialBookingStartTime.value = new Date(startDateTime)
-  initialBookingEndTime.value = new Date(endDateTime)
-
-  // Open booking modal with prefilled values
-  editingBooking.value = null
-  openModal()
 }
 </script>
