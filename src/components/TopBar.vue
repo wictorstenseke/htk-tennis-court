@@ -4,9 +4,7 @@
   >
     <!-- Left: Meny Button -->
     <div class="navbar-start">
-      <label for="sidebar-drawer" class="btn btn-outline btn-sm drawer-button">
-        Meny
-      </label>
+      <label for="sidebar-drawer" class="btn btn-outline btn-sm drawer-button"> Meny </label>
     </div>
 
     <!-- Right: User -->

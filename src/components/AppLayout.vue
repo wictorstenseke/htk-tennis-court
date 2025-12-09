@@ -1,7 +1,7 @@
 <template>
   <div class="drawer lg:drawer-open min-h-screen bg-base-100">
     <input id="sidebar-drawer" type="checkbox" class="drawer-toggle" />
-    
+
     <!-- Drawer Content (Main Content Area) -->
     <div class="drawer-content flex flex-col min-h-screen overflow-x-hidden ml-0 lg:ml-0">
       <!-- Top Bar -->
