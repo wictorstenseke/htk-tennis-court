@@ -74,7 +74,7 @@
                 <input
                   :value="userStore.email"
                   type="email"
-                  class="input input-bordered w-full !bg-base-100 cursor-not-allowed"
+                  class="input input-bordered w-full bg-base-100! cursor-not-allowed"
                   readonly
                   disabled
                 />

@@ -131,8 +131,9 @@ describe('HomeView', () => {
       },
     })
 
-    expect(wrapper.text()).toContain('HTK Tennis')
-    expect(wrapper.text()).toContain('Välkommen till HTK Tennis v2')
+    const logo = wrapper.find('img[alt="HTK Tennis"]')
+    expect(logo.exists()).toBe(true)
+    expect(logo.attributes('src')).toBe('/htk-logo.svg')
   })
 
   it('should load mock users on mount', async () => {

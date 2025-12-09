@@ -2,8 +2,12 @@
   <div class="min-h-screen bg-base-100">
     <div class="container mx-auto px-4 py-8">
       <div class="text-center mb-8">
-        <h1 class="text-5xl font-bold mb-4">HTK Tennis</h1>
-        <p class="text-xl text-base-content/70">Välkommen till HTK Tennis v2</p>
+        <img
+          src="/htk-logo.svg"
+          alt="HTK Tennis"
+          class="w-[130px] h-[130px] mx-auto mb-4 cursor-pointer transition-shadow duration-200 shadow-[0px_4px_4px_rgba(0,0,0,0.1)] hover:shadow-[0px_4px_6px_2px_rgba(0,0,0,0.2)] rounded-full"
+          @click="handleLogoClick"
+        />
         <div class="mt-4">
           <button v-if="!isAuthenticated" @click="openAuthModal" class="btn btn-primary">
             Logga in / Skapa konto
@@ -449,6 +453,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { Timestamp } from 'firebase/firestore'
 import { useUserStore } from '@/stores/user'
 import { useBookings } from '@/composables/useBookings'
@@ -473,6 +478,7 @@ import TimeAutocomplete from '@/components/TimeAutocomplete.vue'
 import type { UserProfileRead } from '@/types/user'
 import type { BookingRead } from '@/types/booking'
 
+const router = useRouter()
 const userStore = useUserStore()
 const { bookingsStore, currentUserId, canEditBooking } = useBookings()
 const { settings, bookingsDisabledMessage, loadSettings } = useAppSettings()
@@ -820,6 +826,11 @@ async function createMockBookings() {
     console.error('Error creating mock bookings:', error)
     // Error is handled by the store
   }
+}
+
+function handleLogoClick() {
+  // Navigate to home route to refresh the page
+  router.push({ name: 'home' })
 }
 
 function handleBookBananClick() {
