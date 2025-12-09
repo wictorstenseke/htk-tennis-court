@@ -2,16 +2,11 @@
   <header
     class="navbar fixed top-0 left-0 right-0 h-16 bg-base-100 border-b border-base-300 z-30 px-4"
   >
-    <!-- Left: Logo and Title -->
+    <!-- Left: Meny Button -->
     <div class="navbar-start">
-      <div class="flex items-center gap-3">
-        <!-- Logo -->
-        <div class="flex items-center justify-center w-10 h-10">
-          <img src="/htk-logo.svg" alt="HTK Logo" class="h-10 w-10" />
-        </div>
-        <!-- Title -->
-        <h1 class="text-xl font-bold text-base-content">Högelids Tennisklubb</h1>
-      </div>
+      <label for="sidebar-drawer" class="btn btn-outline btn-sm drawer-button">
+        Meny
+      </label>
     </div>
 
     <!-- Right: User -->

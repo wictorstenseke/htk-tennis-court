@@ -1,31 +1,25 @@
 <template>
-  <div class="min-h-screen bg-base-100">
-    <!-- Sidebar -->
-    <Sidebar ref="sidebarRef" @width-change="handleSidebarWidthChange" />
+  <div class="drawer lg:drawer-open min-h-screen bg-base-100">
+    <input id="sidebar-drawer" type="checkbox" class="drawer-toggle" />
+    
+    <!-- Drawer Content (Main Content Area) -->
+    <div class="drawer-content flex flex-col min-h-screen overflow-x-hidden ml-0 lg:ml-0">
+      <!-- Top Bar -->
+      <TopBar />
 
-    <!-- Top Bar -->
-    <TopBar />
+      <!-- Main Content -->
+      <main class="flex-1 pt-16">
+        <RouterView />
+      </main>
+    </div>
 
-    <!-- Main Content -->
-    <main
-      class="transition-all duration-300 pt-16 min-h-screen"
-      :style="{ paddingLeft: sidebarWidth + 'px' }"
-    >
-      <RouterView />
-    </main>
+    <!-- Drawer Side (Sidebar) -->
+    <Sidebar />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
 import TopBar from '@/components/TopBar.vue'
 import { RouterView } from 'vue-router'
-
-const sidebarRef = ref<InstanceType<typeof Sidebar> | null>(null)
-const sidebarWidth = ref(256) // Default expanded width (w-64 = 16rem = 256px)
-
-function handleSidebarWidthChange(width: number) {
-  sidebarWidth.value = width
-}
 </script>
